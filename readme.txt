@@ -4,8 +4,9 @@ Twitter for PHP (c) David Grudl, 2008 (http://davidgrudl.com)
 Introduction
 ------------
 
-This is very small and easy library for sending messages to Twitter
-and receiving statuses.
+Twitter for PHP is a very small and easy-to-use library for sending 
+messages to Twitter and receiving status updates.
+
 
 Twitter's API documentation: http://groups.google.com/group/twitter-development-talk/web/api-documentation
 My PHP blog: http://phpfashion.com
@@ -22,27 +23,26 @@ Usage
 
 Create object using your credentials (user name and password)
 
-    $twitter = new Twitter($userName, $password);
+	$twitter = new Twitter($userName, $password);
 
-Method send() updates your status. The message must be encoded in UTF-8:
+The send() method updates your status. The message must be encoded in UTF-8:
 
-    $twitter->send('I am fine today.');
+	$twitter->send('I am fine today.');
 
-Method load() returns the 20 most recent statuses posted in the
-last 24 hours from you and your friends (optionally):
+The load() method returns the 20 most recent status updates 
+posted in the last 24 hours by you and optionally by your friends:
 
-    $withFriends = FALSE;
-    $channel = $twitter->load($withFriends);
+	$withFriends = FALSE;
+	$channel = $twitter->load($withFriends);
 
-Returned channel is a SimpleXMLElement object. Extracting the 
-informations from channel is easy:
+The returned channel is a SimpleXMLElement object. Extracting 
+the information from the channel is easy:
 
-	echo "Title: ", $channel->title;
-
-	foreach ($channel->item as $item) {
-	    echo "Message: ", $item->description;
-	    echo "posted at " , $item->pubDate;
-    }
+	foreach ($channel->status as $status) {
+		echo "message: ", $status->text;
+		echo "posted at " , $status->created_at;
+		echo "posted by " , $status->user->name;
+	}
 
 
 Files

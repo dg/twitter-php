@@ -10,12 +10,11 @@ $channel = $twitter->load($withFriends);
 
 ?>
 
-<h1><?$channel->title?></h1>
-
 <ul>
-<?foreach ($channel->item as $item): ?>
-	<li><?=$item->description?>
-		(<a href="<?=$item->link?>"><?=date("j.n.Y H:s", strtotime($item->pubDate))?></a>)
+<?foreach ($channel->status as $status): ?>
+	<li><a href="http://twitter.com/<?=$status->user->screen_name?>"><?=$status->user->name?></a>:
+	<?=$status->text?>
+	<small>at <?=date("j.n.Y H:s", strtotime($status->created_at))?></small>
 	</li>
 <?endforeach?>
 </ul>

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Twitter for PHP
+ * Twitter for PHP - library for sending messages to Twitter and receiving status updates.
  *
  * @author     David Grudl
  * @copyright  Copyright (c) 2008 David Grudl
@@ -59,18 +59,18 @@ class Twitter
 	public function load($withFriends)
 	{
 		$line = $withFriends ? 'friends_timeline' : 'user_timeline';
-		$url = "http://twitter.com/statuses/$line/$this->user.rss";
+		$url = "http://twitter.com/statuses/$line/$this->user.xml";
 		$feed = $this->httpRequest($url);
 		if ($feed === FALSE) {
-			throw new Exception('Cannot load RSS channel.');
+			throw new Exception('Cannot load channel.');
 		}
 
 		$xml = new SimpleXMLElement($feed);
-		if (!$xml || !$xml->channel) {
-			throw new Exception('Invalid RSS channel.');
+		if (!$xml || !$xml->status) {
+			throw new Exception('Invalid channel.');
 		}
 
-		return $xml->channel;
+		return $xml;
 	}
 
 
