@@ -27,7 +27,7 @@ class Twitter
 	 */
 	public function __construct($user, $pass)
 	{
-		if (!function_exists('curl_version')) {
+		if (!extension_loaded('curl')) {
 			throw new Exception('PHP extension CURL is not loaded.');
 		}
 
@@ -44,8 +44,11 @@ class Twitter
 	 */
 	public function send($message)
 	{
-		$url = 'http://twitter.com/statuses/update.xml?status=' . urlencode($message);
-		return strpos($this->httpRequest($url), '<created_at>') !== FALSE;
+		$result = $this->httpRequest(
+			'http://twitter.com/statuses/update.xml',
+			array('status' => $message)
+		);
+		return strpos($result, '<created_at>') !== FALSE;
 	}
 
 
@@ -78,20 +81,25 @@ class Twitter
 	/**
 	 * Process HTTP request.
 	 * @param string  URL
+	 * @param array   post data
 	 * @return string|FALSE
 	 */
-	private function httpRequest($url)
+	private function httpRequest($url, $post = NULL)
 	{
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL,        $url);
-		curl_setopt($ch, CURLOPT_USERPWD,    "$this->user:$this->pass");
-		curl_setopt($ch, CURLOPT_HEADER,     FALSE);
-		curl_setopt($ch, CURLOPT_POST,       TRUE);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE); // no echo, just return result
-		$result = curl_exec($ch);
-		// debug: echo curl_errno($ch), ', ', curl_error($ch), htmlspecialchars($result);
-		$code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-		if (curl_errno($ch) !== 0 || $code < 200 || $code >= 300) {
+		$curl = curl_init();
+		curl_setopt($curl, CURLOPT_URL, $url);
+		curl_setopt($curl, CURLOPT_USERPWD, "$this->user:$this->pass");
+		curl_setopt($curl, CURLOPT_HEADER, FALSE);
+		curl_setopt($curl, CURLOPT_TIMEOUT, 20);
+		if ($post) {
+			curl_setopt($curl, CURLOPT_POST, TRUE);
+			curl_setopt($curl, CURLOPT_POSTFIELDS, $post);
+		}
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE); // no echo, just return result
+		$result = curl_exec($curl);
+		// debug: echo curl_errno($curl), ', ', curl_error($curl), htmlspecialchars($result);
+		$code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+		if (curl_errno($curl) !== 0 || $code < 200 || $code >= 300) {
 			return FALSE;
 		} else {
 			return $result;
