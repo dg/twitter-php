@@ -45,7 +45,7 @@ class Twitter
 	public function send($message)
 	{
 		$result = $this->httpRequest(
-			'http://twitter.com/statuses/update.xml',
+			'https://twitter.com/statuses/update.xml',
 			array('status' => $message)
 		);
 		return strpos($result, '<created_at>') !== FALSE;
@@ -91,6 +91,7 @@ class Twitter
 		curl_setopt($curl, CURLOPT_USERPWD, "$this->user:$this->pass");
 		curl_setopt($curl, CURLOPT_HEADER, FALSE);
 		curl_setopt($curl, CURLOPT_TIMEOUT, 20);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
 		if ($post) {
 			curl_setopt($curl, CURLOPT_POST, TRUE);
 			curl_setopt($curl, CURLOPT_POSTFIELDS, $post);
