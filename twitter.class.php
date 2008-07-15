@@ -11,6 +11,12 @@
  */
 class Twitter
 {
+	/** @var int */
+	public static $cacheExpire = 1800; // 30 min
+
+	/** @var string */
+	public static $cacheDir;
+
 	/** @var  user name */
 	private $user;
 
@@ -86,25 +92,42 @@ class Twitter
 	 */
 	private function httpRequest($url, $post = NULL)
 	{
+		if (!$post && self::$cacheDir) {
+			$cacheFile = self::$cacheDir . '/twitter.' . md5($url) . '.xml';
+			if (@filemtime($cacheFile) + self::$cacheExpire > time()) {
+				return file_get_contents($cacheFile);
+			}
+		}
+
 		$curl = curl_init();
 		curl_setopt($curl, CURLOPT_URL, $url);
 		curl_setopt($curl, CURLOPT_USERPWD, "$this->user:$this->pass");
 		curl_setopt($curl, CURLOPT_HEADER, FALSE);
 		curl_setopt($curl, CURLOPT_TIMEOUT, 20);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
+		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
 		if ($post) {
 			curl_setopt($curl, CURLOPT_POST, TRUE);
 			curl_setopt($curl, CURLOPT_POSTFIELDS, $post);
 		}
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE); // no echo, just return result
 		$result = curl_exec($curl);
-		// debug: echo curl_errno($curl), ', ', curl_error($curl), htmlspecialchars($result);
-		$code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-		if (curl_errno($curl) !== 0 || $code < 200 || $code >= 300) {
+		$ok = curl_errno($curl) === 0 && curl_getinfo($curl, CURLINFO_HTTP_CODE) === 200;
+
+		if (!$ok) {
+			if (isset($cacheFile)) {
+				$result = @file_get_contents($cacheFile);
+				if (is_string($result)) {
+					return $result;
+				}
+			}
 			return FALSE;
-		} else {
-			return $result;
 		}
+
+		if (isset($cacheFile)) {
+			file_put_contents($cacheFile, $result);
+		}
+
+		return $result;
 	}
 
 }

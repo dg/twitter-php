@@ -8,6 +8,7 @@ Twitter for PHP is a very small and easy-to-use library for sending
 messages to Twitter and receiving status updates.
 
 
+Project at GoogleCode: http://twitter-php.googlecode.com
 Twitter's API documentation: http://groups.google.com/group/twitter-development-talk/web/api-documentation
 My PHP blog: http://phpfashion.com
 
