@@ -44,6 +44,19 @@ class Twitter
 
 
 	/**
+	 * Tests if user credentials are valid.
+	 * @return boolean
+	 * @throws Exception
+	 */
+	public function authenticate()
+	{
+		$result = $this->httpRequest('http://twitter.com/account/verify_credentials.xml');
+		return strpos($result, '<authorized>true</authorized>') !== FALSE;
+	}
+
+
+
+	/**
 	 * Sends message to the Twitter.
 	 * @param string   message encoded in UTF-8
 	 * @return boolean TRUE on success or FALSE on failure
