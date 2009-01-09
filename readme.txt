@@ -45,6 +45,13 @@ the information from the channel is easy:
 		echo "posted by " , $status->user->name;
 	}
 
+The authenticate() method tests if user credentials are valid:
+
+	if (!$twitter->authenticate()) {
+		die('Invalid name or password');
+	}
+
+
 
 Files
 -----
