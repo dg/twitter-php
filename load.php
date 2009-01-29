@@ -14,7 +14,7 @@ $channel = $twitter->load($withFriends);
 <?foreach ($channel->status as $status): ?>
 	<li><a href="http://twitter.com/<?=$status->user->screen_name?>"><?=$status->user->name?></a>:
 	<?=$status->text?>
-	<small>at <?=date("j.n.Y H:m", strtotime($status->created_at))?></small>
+	<small>at <?=date("j.n.Y H:i", strtotime($status->created_at))?></small>
 	</li>
 <?endforeach?>
 </ul>

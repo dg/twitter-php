@@ -51,7 +51,7 @@ class Twitter
 	public function authenticate()
 	{
 		$result = $this->httpRequest('http://twitter.com/account/verify_credentials.xml');
-		return strpos($result, '<authorized>true</authorized>') !== FALSE;
+		return (bool) $result;
 	}
 
 
@@ -82,7 +82,7 @@ class Twitter
 	{
 		$line = $withFriends ? 'friends_timeline' : 'user_timeline';
 		$url = "http://twitter.com/statuses/$line/$this->user.xml";
-		$feed = $this->httpRequest($url);
+		$feed = $this->httpRequest($url, FALSE);
 		if ($feed === FALSE) {
 			throw new Exception('Cannot load channel.');
 		}
@@ -100,12 +100,12 @@ class Twitter
 	/**
 	 * Process HTTP request.
 	 * @param string  URL
-	 * @param array   post data
+	 * @param array   of post data (or FALSE = cached get)
 	 * @return string|FALSE
 	 */
 	private function httpRequest($url, $post = NULL)
 	{
-		if (!$post && self::$cacheDir) {
+		if ($post === FALSE && self::$cacheDir) {
 			$cacheFile = self::$cacheDir . '/twitter.' . md5($url) . '.xml';
 			if (@filemtime($cacheFile) + self::$cacheExpire > time()) {
 				return file_get_contents($cacheFile);
@@ -126,7 +126,7 @@ class Twitter
 		}
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE); // no echo, just return result
 		$result = curl_exec($curl);
-		$ok = curl_errno($curl) === 0 && curl_getinfo($curl, CURLINFO_HTTP_CODE) === 200;
+		$ok = curl_errno($curl) === 0 && curl_getinfo($curl, CURLINFO_HTTP_CODE) === 200; // code 200 is required
 
 		if (!$ok) {
 			if (isset($cacheFile)) {
