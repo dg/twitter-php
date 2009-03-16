@@ -50,8 +50,8 @@ class Twitter
 	 */
 	public function authenticate()
 	{
-		$result = $this->httpRequest('http://twitter.com/account/verify_credentials.xml');
-		return (bool) $result;
+		$xml = $this->httpRequest('http://twitter.com/account/verify_credentials.xml');
+		return (bool) $xml;
 	}
 
 
@@ -59,15 +59,15 @@ class Twitter
 	/**
 	 * Sends message to the Twitter.
 	 * @param string   message encoded in UTF-8
-	 * @return boolean TRUE on success or FALSE on failure
+	 * @return mixed   ID on success or FALSE on failure
 	 */
 	public function send($message)
 	{
-		$result = $this->httpRequest(
+		$xml = $this->httpRequest(
 			'https://twitter.com/statuses/update.xml',
 			array('status' => $message)
 		);
-		return strpos($result, '<created_at>') !== FALSE;
+		return $xml && $xml->id ? (string) $xml->id : FALSE;
 	}
 
 
@@ -81,17 +81,10 @@ class Twitter
 	public function load($withFriends)
 	{
 		$line = $withFriends ? 'friends_timeline' : 'user_timeline';
-		$url = "http://twitter.com/statuses/$line/$this->user.xml";
-		$feed = $this->httpRequest($url, FALSE);
-		if ($feed === FALSE) {
+		$xml = $this->httpRequest("http://twitter.com/statuses/$line/$this->user.xml", FALSE);
+		if (!$xml || !$xml->status) {
 			throw new Exception('Cannot load channel.');
 		}
-
-		$xml = new SimpleXMLElement($feed);
-		if (!$xml || !$xml->status) {
-			throw new Exception('Invalid channel.');
-		}
-
 		return $xml;
 	}
 
@@ -101,14 +94,14 @@ class Twitter
 	 * Process HTTP request.
 	 * @param string  URL
 	 * @param array   of post data (or FALSE = cached get)
-	 * @return string|FALSE
+	 * @return SimpleXMLElement|FALSE
 	 */
 	private function httpRequest($url, $post = NULL)
 	{
 		if ($post === FALSE && self::$cacheDir) {
 			$cacheFile = self::$cacheDir . '/twitter.' . md5($url) . '.xml';
 			if (@filemtime($cacheFile) + self::$cacheExpire > time()) {
-				return file_get_contents($cacheFile);
+				return new SimpleXMLElement(@file_get_contents($cacheFile));
 			}
 		}
 
@@ -132,7 +125,7 @@ class Twitter
 			if (isset($cacheFile)) {
 				$result = @file_get_contents($cacheFile);
 				if (is_string($result)) {
-					return $result;
+					return new SimpleXMLElement($result);
 				}
 			}
 			return FALSE;
@@ -142,7 +135,7 @@ class Twitter
 			file_put_contents($cacheFile, $result);
 		}
 
-		return $result;
+		return new SimpleXMLElement($result);
 	}
 
 }

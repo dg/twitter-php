@@ -4,6 +4,6 @@ require_once 'twitter.class.php';
 
 
 $twitter = new Twitter('pokusnyucet2', '123456');
-$status = $twitter->send('Mám se fajn II');
+$status = $twitter->send('I am fine');
 
 echo $status ? 'OK' : 'ERROR';

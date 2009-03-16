@@ -2,6 +2,9 @@
 
 require_once 'twitter.class.php';
 
+// enables caching (path must exists and must be writable!)
+// Twitter::$cacheDir = dirname(__FILE__) . '/temp';
+
 
 $twitter = new Twitter('pokusnyucet2', '123456');
 
