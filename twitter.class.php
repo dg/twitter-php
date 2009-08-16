@@ -75,13 +75,15 @@ class Twitter
 	/**
 	 * Returns the 20 most recent statuses posted from you and your friends (optionally).
 	 * @param  bool  with friends?
+	 * @param  int   number of statuses to retrieve
+	 * @param  int   page of results to retrieve
 	 * @return SimpleXMLElement
 	 * @throws Exception
 	 */
-	public function load($withFriends)
+	public function load($withFriends, $count = 20, $page = 1)
 	{
 		$line = $withFriends ? 'friends_timeline' : 'user_timeline';
-		$xml = $this->httpRequest("http://twitter.com/statuses/$line/$this->user.xml", FALSE);
+		$xml = $this->httpRequest("http://twitter.com/statuses/$line/$this->user.xml?count=$count&page=$page", FALSE);
 		if (!$xml || !$xml->status) {
 			throw new Exception('Cannot load channel.');
 		}
