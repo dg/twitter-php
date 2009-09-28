@@ -51,7 +51,7 @@ class Twitter
 	public function authenticate()
 	{
 		$xml = $this->httpRequest('http://twitter.com/account/verify_credentials.xml');
-		return empty($xml->error);
+		return empty($xml->error) && !empty($xml->id);
 	}
 
 
