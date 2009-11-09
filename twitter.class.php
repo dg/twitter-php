@@ -7,10 +7,17 @@
  * @copyright  Copyright (c) 2008 David Grudl
  * @license    New BSD License
  * @link       http://phpfashion.com/
- * @version    1.1
+ * @version    1.2
  */
 class Twitter
 {
+	/**#@+ Timelines {@link Twitter::load()} */
+	const ME = 'user_timeline';
+	const ME_AND_FRIENDS = 'friends_timeline';
+	const REPLIES = 'mentions';
+	const ALL = 'public_timeline';
+	/**#@-*/
+
 	/** @var int */
 	public static $cacheExpire = 1800; // 30 min
 
@@ -73,17 +80,19 @@ class Twitter
 
 
 	/**
-	 * Returns the most recent statuses posted from you and your friends (optionally).
-	 * @param  bool  with friends?
-	 * @param  int   number of statuses to retrieve
-	 * @param  int   page of results to retrieve
+	 * Returns the most recent statuses.
+	 * @param  string timeline (ME | ME_AND_FRIENDS | REPLIES | ALL)
+	 * @param  int    number of statuses to retrieve
+	 * @param  int    page of results to retrieve
 	 * @return SimpleXMLElement
 	 * @throws TwitterException
 	 */
-	public function load($withFriends, $count = 20, $page = 1)
+	public function load($timeline = self::ME, $count = 20, $page = 1)
 	{
-		$line = $withFriends ? 'friends_timeline' : 'user_timeline';
-		$xml = $this->cachedHttpRequest("http://twitter.com/statuses/$line/$this->user.xml?count=$count&page=$page");
+		if (!is_string($timeline)) { // back compatibility
+			$timeline = $timeline ? self::ME_AND_FRIENDS : self::ME;
+		}
+		$xml = $this->cachedHttpRequest("http://twitter.com/statuses/$timeline.xml?count=$count&page=$page");
 		if (isset($xml->error)) {
 			throw new TwitterException($xml->error);
 		}

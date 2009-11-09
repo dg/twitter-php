@@ -6,10 +6,10 @@ require_once 'twitter.class.php';
 // Twitter::$cacheDir = dirname(__FILE__) . '/temp';
 
 
+// ENTER HERE YOUR CREDENTIALS:
 $twitter = new Twitter('pokusnyucet2', '123456');
 
-$withFriends = FALSE;
-$channel = $twitter->load($withFriends);
+$channel = $twitter->load(Twitter::ME_AND_FRIENDS);
 
 ?>
 

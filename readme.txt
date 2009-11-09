@@ -31,10 +31,17 @@ The send() method updates your status. The message must be encoded in UTF-8:
 	$twitter->send('I am fine today.');
 
 The load() method returns the 20 most recent status updates 
-posted in the last 24 hours by you and optionally by your friends:
+posted in the last 24 hours by you:
 
-	$withFriends = FALSE;
-	$channel = $twitter->load($withFriends);
+	$channel = $twitter->load(Twitter::ME);
+
+or posted by you and your friends:
+
+	$channel = $twitter->load(Twitter::ME_AND_FRIENDS);
+
+or most recent mentions for you:
+
+	$channel = $twitter->load(Twitter::REPLIES);
 
 The returned channel is a SimpleXMLElement object. Extracting 
 the information from the channel is easy:
