@@ -103,11 +103,11 @@ class Twitter
 
 	/**
 	 * Process HTTP request.
-	 * @param string  URL
-	 * @param array   of post data
+	 * @param  string  URL
+	 * @param  array   of post data
 	 * @return SimpleXMLElement
 	 */
-	private function httpRequest($url, $post = NULL)
+	private function httpRequest($url, $postData = NULL)
 	{
 		$curl = curl_init();
 		curl_setopt($curl, CURLOPT_URL, $url);
@@ -117,27 +117,30 @@ class Twitter
 		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
 		curl_setopt($curl, CURLOPT_HTTPHEADER, array('Expect:'));
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE); // no echo, just return result
-		if ($post) {
+		if ($postData) {
 			curl_setopt($curl, CURLOPT_POST, TRUE);
-			curl_setopt($curl, CURLOPT_POSTFIELDS, $post);
+			curl_setopt($curl, CURLOPT_POSTFIELDS, $postData);
 		}
 
 		$result = curl_exec($curl);
-		if (curl_errno($curl) === 0) {
-			@$xml = simplexml_load_string($result); // intentionally @
-			if ($xml) {
-				return $xml;
-			}
+		if (curl_errno($curl)) {
+			throw new TwitterException('Server error: ' . curl_error($curl));
 		}
 
-		throw new TwitterException('Invalid server response');
+		$type = curl_getinfo($curl, CURLINFO_CONTENT_TYPE);
+		if (strpos($type, 'xml') && $xml = @simplexml_load_string($result)) { // intentionally @
+			return $xml;
+
+		} else {
+			throw new TwitterException('Invalid server response');
+		}
 	}
 
 
 
 	/**
 	 * Cached HTTP request.
-	 * @param string  URL
+	 * @param  string  URL
 	 * @return SimpleXMLElement
 	 */
 	private function cachedHttpRequest($url)
