@@ -7,6 +7,7 @@
  * @copyright  Copyright (c) 2008 David Grudl
  * @license    New BSD License
  * @link       http://phpfashion.com/
+ * @see        http://apiwiki.twitter.com/Twitter-API-Documentation
  * @version    1.2
  */
 class Twitter
@@ -64,8 +65,16 @@ class Twitter
 	 */
 	public function authenticate()
 	{
+		try {
 		$xml = $this->httpRequest('http://twitter.com/account/verify_credentials.xml');
-		return empty($xml->error) && !empty($xml->id);
+			return !empty($xml->id);
+
+		} catch (TwitterException $e) {
+			if ($e->getCode() === 401) {
+				return FALSE;
+			}
+			throw $e;
+		}
 	}
 
 
@@ -106,11 +115,7 @@ class Twitter
 			throw new InvalidArgumentException;
 		}
 
-		$res = $this->cachedHttpRequest("http://twitter.com/statuses/" . $timelines[$flags & 0x0F] . '.' . $formats[$flags & 0x30] . "?count=$count&page=$page");
-		if (isset($res->error)) {
-			throw new TwitterException($res->error);
-		}
-		return $res;
+		return $this->cachedHttpRequest("http://twitter.com/statuses/" . $timelines[$flags & 0x0F] . '.' . $formats[$flags & 0x30] . "?count=$count&page=$page");
 	}
 
 
@@ -142,15 +147,23 @@ class Twitter
 		}
 
 		$type = curl_getinfo($curl, CURLINFO_CONTENT_TYPE);
-		if (strpos($type, 'xml') && $xml = @simplexml_load_string($result)) { // intentionally @
-			return $xml;
+		if (strpos($type, 'xml')) {
+			$payload = @simplexml_load_string($result); // intentionally @
 
-		} elseif (strpos($type, 'json') && $json = @json_decode($result)) { // intentionally @
-			return $json;
+		} elseif (strpos($type, 'json')) {
+			$payload = @json_decode($result); // intentionally @
+		}
 
-		} else {
+		if (empty($payload)) {
 			throw new TwitterException('Invalid server response');
 		}
+
+		$code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+		if ($code >= 400) {
+			throw new TwitterException(isset($payload->error) ? $payload->error : "Server error #$code", $code);
+		}
+
+		return $payload;
 	}
 
 
@@ -174,9 +187,9 @@ class Twitter
 		}
 
 		try {
-			$result = $this->httpRequest($url);
-			file_put_contents($cacheFile, $result instanceof SimpleXMLElement ? $result->asXml() : json_encode($result));
-			return $result;
+			$payload = $this->httpRequest($url);
+			file_put_contents($cacheFile, $payload instanceof SimpleXMLElement ? $payload->asXml() : json_encode($payload));
+			return $payload;
 
 		} catch (TwitterException $e) {
 			if ($cache) {
