@@ -11,11 +11,18 @@
  */
 class Twitter
 {
-	/**#@+ Timelines {@link Twitter::load()} */
-	const ME = 'user_timeline';
-	const ME_AND_FRIENDS = 'friends_timeline';
-	const REPLIES = 'mentions';
-	const ALL = 'public_timeline';
+	/**#@+ Timeline {@link Twitter::load()} */
+	const ME = 1;
+	const ME_AND_FRIENDS = 2;
+	const REPLIES = 3;
+	const ALL = 4;
+	/**#@-*/
+
+	/**#@+ Output format {@link Twitter::load()} */
+	const XML = 0;
+	const JSON = 16;
+	const RSS = 32;
+	const ATOM = 48;
 	/**#@-*/
 
 	/** @var int */
@@ -81,22 +88,29 @@ class Twitter
 
 	/**
 	 * Returns the most recent statuses.
-	 * @param  string timeline (ME | ME_AND_FRIENDS | REPLIES | ALL)
+	 * @param  int    timeline (ME | ME_AND_FRIENDS | REPLIES | ALL) and optional format (XML | JSON | RSS | ATOM)
 	 * @param  int    number of statuses to retrieve
 	 * @param  int    page of results to retrieve
-	 * @return SimpleXMLElement
+	 * @return mixed
 	 * @throws TwitterException
 	 */
-	public function load($timeline = self::ME, $count = 20, $page = 1)
+	public function load($flags = self::ME, $count = 20, $page = 1)
 	{
-		if (!is_string($timeline)) { // back compatibility
-			$timeline = $timeline ? self::ME_AND_FRIENDS : self::ME;
+		static $timelines = array(self::ME => 'user_timeline', self::ME_AND_FRIENDS => 'friends_timeline', self::REPLIES => 'mentions', self::ALL => 'public_timeline');
+		static $formats = array(self::XML => 'xml', self::JSON => 'json', self::RSS => 'rss', self::ATOM => 'atom');
+
+		if (!is_int($flags)) { // back compatibility
+			$flags = $flags ? self::ME_AND_FRIENDS : self::ME;
+
+		} elseif (!isset($timelines[$flags & 0x0F], $formats[$flags & 0x30])) {
+			throw new InvalidArgumentException;
 		}
-		$xml = $this->cachedHttpRequest("http://twitter.com/statuses/$timeline.xml?count=$count&page=$page");
-		if (isset($xml->error)) {
-			throw new TwitterException($xml->error);
+
+		$res = $this->cachedHttpRequest("http://twitter.com/statuses/" . $timelines[$flags & 0x0F] . '.' . $formats[$flags & 0x30] . "?count=$count&page=$page");
+		if (isset($res->error)) {
+			throw new TwitterException($res->error);
 		}
-		return $xml;
+		return $res;
 	}
 
 
