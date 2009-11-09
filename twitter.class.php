@@ -105,7 +105,7 @@ class Twitter
 	 * Process HTTP request.
 	 * @param  string  URL
 	 * @param  array   of post data
-	 * @return SimpleXMLElement
+	 * @return mixed
 	 */
 	private function httpRequest($url, $postData = NULL)
 	{
@@ -131,6 +131,9 @@ class Twitter
 		if (strpos($type, 'xml') && $xml = @simplexml_load_string($result)) { // intentionally @
 			return $xml;
 
+		} elseif (strpos($type, 'json') && $json = @json_decode($result)) { // intentionally @
+			return $json;
+
 		} else {
 			throw new TwitterException('Invalid server response');
 		}
@@ -141,7 +144,7 @@ class Twitter
 	/**
 	 * Cached HTTP request.
 	 * @param  string  URL
-	 * @return SimpleXMLElement
+	 * @return mixed
 	 */
 	private function cachedHttpRequest($url)
 	{
@@ -149,16 +152,17 @@ class Twitter
 			return $this->httpRequest($url);
 		}
 
-		$cacheFile = self::$cacheDir . '/twitter.' . md5($url) . '.xml';
-		$cache = @simplexml_load_string(file_get_contents($cacheFile)); // intentionally @
+		$cacheFile = self::$cacheDir . '/twitter.' . md5($url);
+		$cache = @file_get_contents($cacheFile); // intentionally @
+		$cache = strncmp($cache, '<', 1) ? @json_decode($cache) : @simplexml_load_string($cache); // intentionally @
 		if ($cache && @filemtime($cacheFile) + self::$cacheExpire > time()) { // intentionally @
 			return $cache;
 		}
 
 		try {
-			$xml = $this->httpRequest($url);
-			file_put_contents($cacheFile, $xml->asXml());
-			return $xml;
+			$result = $this->httpRequest($url);
+			file_put_contents($cacheFile, $result instanceof SimpleXMLElement ? $result->asXml() : json_encode($result));
+			return $result;
 
 		} catch (TwitterException $e) {
 			if ($cache) {
