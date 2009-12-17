@@ -121,6 +121,19 @@ class Twitter
 
 
 	/**
+	 * Destroys status.
+	 * @param  int    id of status to be destroyed
+	 * @return mixed
+	 * @throws TwitterException
+	 */
+	public function destroy($id)
+	{
+		$xml= $this->httpRequest("http://twitter.com/statuses/destroy/$id.xml", array('id' => $id));
+		return $xml->id ? (string) $xml->id : FALSE;
+	}
+
+
+	/**
 	 * Process HTTP request.
 	 * @param  string  URL
 	 * @param  array   of post data
