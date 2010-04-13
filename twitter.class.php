@@ -87,6 +87,10 @@ class Twitter
 	 */
 	public function send($message)
 	{
+		if (iconv_strlen($message, 'UTF-8') > 140) {
+			$message = preg_replace_callback('#https?://\S+[^:);,.!?\s]#', array($this, 'shortenUrl'), $message);
+		}
+
 		$xml = $this->httpRequest(
 			'https://twitter.com/statuses/update.xml',
 			array('status' => $message)
@@ -212,6 +216,25 @@ class Twitter
 			}
 			throw $e;
 		}
+	}
+
+
+
+	/**
+	 * Shortens URL using http://is.gd API.
+	 * @param  array
+	 * @return string
+	 */
+	private function shortenUrl($m)
+	{
+		$curl = curl_init();
+		curl_setopt($curl, CURLOPT_URL, 'http://is.gd/api.php?longurl=' . urlencode($m[0]));
+		curl_setopt($curl, CURLOPT_HEADER, FALSE);
+		curl_setopt($curl, CURLOPT_TIMEOUT, 20);
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
+		$result = curl_exec($curl);
+		$code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+		return curl_errno($curl) || $code >= 400 ? $m[0] : $result;
 	}
 
 }
