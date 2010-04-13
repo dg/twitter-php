@@ -32,10 +32,10 @@ class Twitter
 	/** @var string */
 	public static $cacheDir;
 
-	/** @var  user name */
+	/** @var string  user name */
 	private $user;
 
-	/** @var  password */
+	/** @var string  password */
 	private $pass;
 
 
@@ -44,7 +44,7 @@ class Twitter
 	 * Creates object using your credentials.
 	 * @param  string  user name
 	 * @param  string  password
-	 * @throws Exception
+	 * @throws TwitterException when CURL extension is not loaded
 	 */
 	public function __construct($user, $pass)
 	{
@@ -61,12 +61,12 @@ class Twitter
 	/**
 	 * Tests if user credentials are valid.
 	 * @return boolean
-	 * @throws Exception
+	 * @throws TwitterException
 	 */
 	public function authenticate()
 	{
 		try {
-		$xml = $this->httpRequest('http://twitter.com/account/verify_credentials.xml');
+			$xml = $this->httpRequest('http://twitter.com/account/verify_credentials.xml');
 			return !empty($xml->id);
 
 		} catch (TwitterException $e) {
@@ -83,6 +83,7 @@ class Twitter
 	 * Sends message to the Twitter.
 	 * @param string   message encoded in UTF-8
 	 * @return mixed   ID on success or FALSE on failure
+	 * @throws TwitterException
 	 */
 	public function send($message)
 	{
@@ -128,7 +129,7 @@ class Twitter
 	 */
 	public function destroy($id)
 	{
-		$xml= $this->httpRequest("http://twitter.com/statuses/destroy/$id.xml", array('id' => $id));
+		$xml = $this->httpRequest("http://twitter.com/statuses/destroy/$id.xml", array('id' => $id));
 		return $xml->id ? (string) $xml->id : FALSE;
 	}
 
@@ -136,8 +137,9 @@ class Twitter
 	/**
 	 * Process HTTP request.
 	 * @param  string  URL
-	 * @param  array   of post data
+	 * @param  array   POST data
 	 * @return mixed
+	 * @throws TwitterException
 	 */
 	private function httpRequest($url, $postData = NULL)
 	{
