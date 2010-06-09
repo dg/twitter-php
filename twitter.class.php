@@ -46,7 +46,7 @@ class Twitter
 	 * @param  string  password
 	 * @throws TwitterException when CURL extension is not loaded
 	 */
-	public function __construct($user, $pass)
+	public function __construct($user = NULL, $pass = NULL)
 	{
 		if (!extension_loaded('curl')) {
 			throw new TwitterException('PHP extension CURL is not loaded.');
@@ -138,6 +138,29 @@ class Twitter
 	}
 
 
+
+	/**
+	 * Returns tweets that match a specified query.
+	 * @param  string   query
+	 * @param  int      format (JSON | ATOM)
+	 * @return mixed
+	 * @throws TwitterException
+	 */
+	public function search($query, $flags = self::JSON)
+	{
+		static $formats = array(self::JSON => 'json', self::ATOM => 'atom');
+		if (!isset($formats[$flags & 0x30])) {
+			throw new InvalidArgumentException;
+		}
+
+		return $this->httpRequest(
+			'http://search.twitter.com/search.' . $formats[$flags & 0x30],
+			array('q' => $query)
+		)->results;
+	}
+
+
+
 	/**
 	 * Process HTTP request.
 	 * @param  string  URL
@@ -149,7 +172,9 @@ class Twitter
 	{
 		$curl = curl_init();
 		curl_setopt($curl, CURLOPT_URL, $url);
-		curl_setopt($curl, CURLOPT_USERPWD, "$this->user:$this->pass");
+		if ($this->user) {
+			curl_setopt($curl, CURLOPT_USERPWD, "$this->user:$this->pass");
+		}
 		curl_setopt($curl, CURLOPT_HEADER, FALSE);
 		curl_setopt($curl, CURLOPT_TIMEOUT, 20);
 		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);

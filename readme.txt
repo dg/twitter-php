@@ -4,7 +4,7 @@ Twitter for PHP (c) David Grudl, 2008 (http://davidgrudl.com)
 Introduction
 ------------
 
-Twitter for PHP is a very small and easy-to-use library for sending 
+Twitter for PHP is a very small and easy-to-use library for sending
 messages to Twitter and receiving status updates.
 
 
@@ -30,7 +30,7 @@ The send() method updates your status. The message must be encoded in UTF-8:
 
 	$twitter->send('I am fine today.');
 
-The load() method returns the 20 most recent status updates 
+The load() method returns the 20 most recent status updates
 posted in the last 24 hours by you:
 
 	$channel = $twitter->load(Twitter::ME);
@@ -43,7 +43,7 @@ or most recent mentions for you:
 
 	$channel = $twitter->load(Twitter::REPLIES);
 
-The returned channel is a SimpleXMLElement object. Extracting 
+The returned channel is a SimpleXMLElement object. Extracting
 the information from the channel is easy:
 
 	foreach ($channel->status as $status) {
