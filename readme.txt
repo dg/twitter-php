@@ -58,12 +58,26 @@ The authenticate() method tests if user credentials are valid:
 		die('Invalid name or password');
 	}
 
+The search() method provides searching in twitter statuses:
+
+	$results = $twitter->search('#nette');
+
+The returned result is a PHP array:
+
+	foreach ($results as $result) {
+		echo "message: ", $result->text;
+		echo "posted at " , $result->created_at;
+		echo "posted by " , $result->form_user;
+	}
+
+
 
 
 Files
 -----
-readme.txt        - This file.
-license.txt       - The license for this software (New BSD License).
-twitter.class.php - The core Twitter class source.
-send.php          - Example sending message to Twitter.
-load.php          - Example loading statuses from Twitter.
+readme.txt          - This file.
+license.txt         - The license for this software (New BSD License).
+twitter.class.php   - The core Twitter class source.
+examples/send.php   - Example sending message to Twitter.
+examples/load.php   - Example loading statuses from Twitter.
+examples/search.php - Example searching on Twitter.

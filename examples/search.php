@@ -1,6 +1,6 @@
 <?php
 
-require_once 'twitter.class.php';
+require_once '../twitter.class.php';
 
 
 // ENTER HERE YOUR CREDENTIALS:
@@ -9,6 +9,7 @@ $twitter = new Twitter;
 $results = $twitter->search('#nette');
 
 ?>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 
 <ul>
 <?foreach ($results as $result): ?>

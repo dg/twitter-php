@@ -1,6 +1,6 @@
 <?php
 
-require_once 'twitter.class.php';
+require_once '../twitter.class.php';
 
 // enables caching (path must exists and must be writable!)
 // Twitter::$cacheDir = dirname(__FILE__) . '/temp';
@@ -12,6 +12,7 @@ $twitter = new Twitter('pokusnyucet2', '123456');
 $channel = $twitter->load(Twitter::ME_AND_FRIENDS);
 
 ?>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 
 <ul>
 <?foreach ($channel->status as $status): ?>
