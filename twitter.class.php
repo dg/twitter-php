@@ -8,7 +8,7 @@
  * @license    New BSD License
  * @link       http://phpfashion.com/
  * @see        http://apiwiki.twitter.com/Twitter-API-Documentation
- * @version    1.2
+ * @version    1.3
  */
 class Twitter
 {
