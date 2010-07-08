@@ -129,6 +129,24 @@ class Twitter
 
 
 	/**
+	 * Returns information of a given user.
+	 * @param  int    format (XML | JSON)
+	 * @return mixed
+	 * @throws TwitterException
+	 */
+	public function loadUserInfo($flags = self::XML)
+	{
+		static $formats = array(self::JSON => 'json', self::XML => 'xml');
+		if (!isset($formats[$flags & 0x30])) {
+			throw new InvalidArgumentException;
+		}
+
+		return $this->cachedHttpRequest('http://twitter.com/users/show.' . $formats[$flags & 0x30], array('screen_name' => $this->user));
+	}
+
+
+
+	/**
 	 * Destroys status.
 	 * @param  int    id of status to be destroyed
 	 * @return mixed
