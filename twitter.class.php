@@ -17,6 +17,7 @@ class Twitter
 	const ME_AND_FRIENDS = 2;
 	const REPLIES = 3;
 	const ALL = 4;
+	const RETWEETS = 128; // include retweets?
 	/**#@-*/
 
 	/**#@+ Output format {@link Twitter::load()} */
@@ -102,7 +103,7 @@ class Twitter
 
 	/**
 	 * Returns the most recent statuses.
-	 * @param  int    timeline (ME | ME_AND_FRIENDS | REPLIES | ALL) and optional format (XML | JSON | RSS | ATOM)
+	 * @param  int    timeline (ME | ME_AND_FRIENDS | REPLIES | ALL) and optional (RETWEETS) or format (XML | JSON | RSS | ATOM)
 	 * @param  int    number of statuses to retrieve
 	 * @param  int    page of results to retrieve
 	 * @return mixed
@@ -123,6 +124,7 @@ class Twitter
 		return $this->cachedHttpRequest("http://twitter.com/statuses/" . $timelines[$flags & 0x0F] . '.' . $formats[$flags & 0x30], array(
 			'count' => $count,
 			'page' => $page,
+			'include_rts' => $flags & self::RETWEETS ? 1 : 0,
 		));
 	}
 
