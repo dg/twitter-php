@@ -3,7 +3,6 @@
 require_once '../twitter.class.php';
 
 
-// ENTER HERE YOUR CREDENTIALS:
 $twitter = new Twitter;
 
 $results = $twitter->search('#nette');

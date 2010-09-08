@@ -6,8 +6,8 @@ require_once '../twitter.class.php';
 // Twitter::$cacheDir = dirname(__FILE__) . '/temp';
 
 
-// ENTER HERE YOUR CREDENTIALS:
-$twitter = new Twitter('pokusnyucet2', '123456');
+// ENTER HERE YOUR CREDENTIALS (see readme.txt)
+$twitter = new Twitter($consumerKey, $consumerSecret, $accessToken, $accessTokenSecret);
 
 $channel = $twitter->load(Twitter::ME_AND_FRIENDS);
 

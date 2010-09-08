@@ -22,9 +22,13 @@ Requirements
 Usage
 -----
 
-Create object using your credentials (user name and password)
+Sign in to the http://twitter.com and register an application from the http://dev.twitter.com/apps page. Remember 
+to never reveal your consumer secrets. Click on My Access Token link from the sidebar and retrieve your own access 
+token. Now you have consumer key, consumer secret, access token and access token secret.
 
-	$twitter = new Twitter($userName, $password);
+Create object using application and request/access keys
+
+	$twitter = new Twitter($consumerKey, $consumerSecret, $accessToken, $accessTokenSecret);
 
 The send() method updates your status. The message must be encoded in UTF-8:
 
@@ -75,9 +79,10 @@ The returned result is a PHP array:
 
 Files
 -----
-readme.txt          - This file.
-license.txt         - The license for this software (New BSD License).
-twitter.class.php   - The core Twitter class source.
-examples/send.php   - Example sending message to Twitter.
-examples/load.php   - Example loading statuses from Twitter.
-examples/search.php - Example searching on Twitter.
+readme.txt           - This file.
+license.txt          - The license for this software (New BSD License).
+twitter.class.php    - The core Twitter class source.
+examples/send.php    - Example sending message to Twitter.
+examples/load.php    - Example loading statuses from Twitter.
+examples/search.php  - Example searching on Twitter.
+OAuth.php            - Andy Smith' OAuth library

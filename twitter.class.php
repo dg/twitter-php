@@ -1,5 +1,8 @@
 <?php
 
+require_once dirname(__FILE__) . '/OAuth.php';
+
+
 /**
  * Twitter for PHP - library for sending messages to Twitter and receiving status updates.
  *
@@ -8,7 +11,7 @@
  * @license    New BSD License
  * @link       http://phpfashion.com/
  * @see        http://apiwiki.twitter.com/Twitter-API-Documentation
- * @version    1.3
+ * @version    2.0
  */
 class Twitter
 {
@@ -33,28 +36,35 @@ class Twitter
 	/** @var string */
 	public static $cacheDir;
 
-	/** @var string  user name */
-	private $user;
+	/** @var OAuthSignatureMethod */
+	private $signatureMethod;
 
-	/** @var string  password */
-	private $pass;
+	/** @var OAuthConsumer */
+	private $consumer;
+
+	/** @var OAuthConsumer */
+	private $token;
 
 
 
 	/**
-	 * Creates object using your credentials.
-	 * @param  string  user name
-	 * @param  string  password
+	 * Creates object using consumer and access keys.
+	 * @param  string  consumer key
+	 * @param  string  app secret
+	 * @param  string  optional access token
+	 * @param  string  optinal access token secret
 	 * @throws TwitterException when CURL extension is not loaded
+	 * @throws TwitterAuthException to signalize individual authorization steps
 	 */
-	public function __construct($user = NULL, $pass = NULL)
+	public function __construct($consumerKey = NULL, $consumerSecret = NULL, $accessToken = NULL, $accessTokenSecret = NULL)
 	{
 		if (!extension_loaded('curl')) {
 			throw new TwitterException('PHP extension CURL is not loaded.');
 		}
 
-		$this->user = $user;
-		$this->pass = $pass;
+		$this->signatureMethod = new OAuthSignatureMethod_HMAC_SHA1();
+		$this->consumer = new OAuthConsumer($consumerKey, $consumerSecret);
+		$this->token = new OAuthConsumer($accessToken, $accessTokenSecret);
 	}
 
 
@@ -132,18 +142,19 @@ class Twitter
 
 	/**
 	 * Returns information of a given user.
+	 * @param  string name
 	 * @param  int    format (XML | JSON)
 	 * @return mixed
 	 * @throws TwitterException
 	 */
-	public function loadUserInfo($flags = self::XML)
+	public function loadUserInfo($user, $flags = self::XML)
 	{
 		static $formats = array(self::JSON => 'json', self::XML => 'xml');
 		if (!isset($formats[$flags & 0x30])) {
 			throw new InvalidArgumentException;
 		}
 
-		return $this->cachedHttpRequest('http://twitter.com/users/show.' . $formats[$flags & 0x30], array('screen_name' => $this->user));
+		return $this->cachedHttpRequest('http://twitter.com/users/show.' . $formats[$flags & 0x30], array('screen_name' => $user));
 	}
 
 
@@ -194,22 +205,23 @@ class Twitter
 	 */
 	private function httpRequest($url, $data = NULL, $method = 'POST')
 	{
+		$request = OAuthRequest::from_consumer_and_token($this->consumer, $this->token, $method, $url, $data);
+		$request->sign_request($this->signatureMethod, $this->consumer, $this->token);
+
 		$curl = curl_init();
-		if ($this->user) {
-			curl_setopt($curl, CURLOPT_USERPWD, "$this->user:$this->pass");
-		}
 		curl_setopt($curl, CURLOPT_HEADER, FALSE);
 		curl_setopt($curl, CURLOPT_TIMEOUT, 20);
 		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
 		curl_setopt($curl, CURLOPT_HTTPHEADER, array('Expect:'));
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE); // no echo, just return result
+		curl_setopt($curl, CURLOPT_USERAGENT, 'Twitter for PHP');
 		if ($method === 'POST') {
 			curl_setopt($curl, CURLOPT_POST, TRUE);
-			curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+			curl_setopt($curl, CURLOPT_POSTFIELDS, $request->to_postdata());
+			curl_setopt($curl, CURLOPT_URL, $request->get_normalized_http_url());
 		} else {
-			$url .= '?' . http_build_query($data, '', '&');
+			curl_setopt($curl, CURLOPT_URL, $request->to_url());
 		}
-		curl_setopt($curl, CURLOPT_URL, $url);
 
 		$result = curl_exec($curl);
 		if (curl_errno($curl)) {
