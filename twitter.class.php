@@ -122,16 +122,15 @@ class Twitter
 	public function load($flags = self::ME, $count = 20, $page = 1)
 	{
 		static $timelines = array(self::ME => 'user_timeline', self::ME_AND_FRIENDS => 'friends_timeline', self::REPLIES => 'mentions', self::ALL => 'public_timeline');
-		static $formats = array(self::XML => 'xml', self::JSON => 'json', self::RSS => 'rss', self::ATOM => 'atom');
 
 		if (!is_int($flags)) { // back compatibility
 			$flags = $flags ? self::ME_AND_FRIENDS : self::ME;
 
-		} elseif (!isset($timelines[$flags & 0x0F], $formats[$flags & 0x30])) {
+		} elseif (!isset($timelines[$flags & 0x0F])) {
 			throw new InvalidArgumentException;
 		}
 
-		return $this->cachedHttpRequest("http://twitter.com/statuses/" . $timelines[$flags & 0x0F] . '.' . $formats[$flags & 0x30], array(
+		return $this->cachedHttpRequest("http://twitter.com/statuses/" . $timelines[$flags & 0x0F] . '.' . self::getFormat($flags), array(
 			'count' => $count,
 			'page' => $page,
 			'include_rts' => $flags & self::RETWEETS ? 1 : 0,
@@ -149,12 +148,7 @@ class Twitter
 	 */
 	public function loadUserInfo($user, $flags = self::XML)
 	{
-		static $formats = array(self::JSON => 'json', self::XML => 'xml');
-		if (!isset($formats[$flags & 0x30])) {
-			throw new InvalidArgumentException;
-		}
-
-		return $this->cachedHttpRequest('http://twitter.com/users/show.' . $formats[$flags & 0x30], array('screen_name' => $user));
+		return $this->cachedHttpRequest('http://twitter.com/users/show.' . self::getFormat($flags), array('screen_name' => $user));
 	}
 
 
@@ -182,13 +176,8 @@ class Twitter
 	 */
 	public function search($query, $flags = self::JSON)
 	{
-		static $formats = array(self::JSON => 'json', self::ATOM => 'atom');
-		if (!isset($formats[$flags & 0x30])) {
-			throw new InvalidArgumentException;
-		}
-
 		return $this->httpRequest(
-			'http://search.twitter.com/search.' . $formats[$flags & 0x30],
+			'http://search.twitter.com/search.' . self::getFormat($flags),
 			array('q' => $query)
 		)->results;
 	}
@@ -298,6 +287,19 @@ class Twitter
 		$result = curl_exec($curl);
 		$code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 		return curl_errno($curl) || $code >= 400 ? $m[0] : $result;
+	}
+
+
+
+	private static function getFormat($flag)
+	{
+		static $formats = array(self::XML => 'xml', self::JSON => 'json', self::RSS => 'rss', self::ATOM => 'atom');
+		$flag = $flag & 0x30;
+		if (isset($formats[$flag])) {
+			return $formats[$flag];
+		} else {
+			throw new InvalidArgumentException('Invalid format');
+		}
 	}
 
 }
