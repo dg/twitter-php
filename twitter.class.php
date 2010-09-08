@@ -10,7 +10,7 @@ require_once dirname(__FILE__) . '/OAuth.php';
  * @copyright  Copyright (c) 2008 David Grudl
  * @license    New BSD License
  * @link       http://phpfashion.com/
- * @see        http://apiwiki.twitter.com/Twitter-API-Documentation
+ * @see        http://dev.twitter.com/doc
  * @version    2.0
  */
 class Twitter
@@ -77,7 +77,7 @@ class Twitter
 	public function authenticate()
 	{
 		try {
-			$xml = $this->httpRequest('http://twitter.com/account/verify_credentials.xml');
+			$xml = $this->request('account/verify_credentials', NULL, 'GET');
 			return !empty($xml->id);
 
 		} catch (TwitterException $e) {
@@ -102,10 +102,7 @@ class Twitter
 			$message = preg_replace_callback('#https?://\S+[^:);,.!?\s]#', array($this, 'shortenUrl'), $message);
 		}
 
-		$xml = $this->httpRequest(
-			'https://twitter.com/statuses/update.xml',
-			array('status' => $message)
-		);
+		$xml = $this->request('statuses/update', array('status' => $message));
 		return $xml->id ? (string) $xml->id : FALSE;
 	}
 
@@ -130,7 +127,7 @@ class Twitter
 			throw new InvalidArgumentException;
 		}
 
-		return $this->cachedHttpRequest("http://twitter.com/statuses/" . $timelines[$flags & 0x0F] . '.' . self::getFormat($flags), array(
+		return $this->cachedRequest('statuses/' . $timelines[$flags & 0x0F] . '.' . self::getFormat($flags), array(
 			'count' => $count,
 			'page' => $page,
 			'include_rts' => $flags & self::RETWEETS ? 1 : 0,
@@ -148,7 +145,7 @@ class Twitter
 	 */
 	public function loadUserInfo($user, $flags = self::XML)
 	{
-		return $this->cachedHttpRequest('http://twitter.com/users/show.' . self::getFormat($flags), array('screen_name' => $user));
+		return $this->cachedRequest('users/show.' . self::getFormat($flags), array('screen_name' => $user));
 	}
 
 
@@ -161,7 +158,7 @@ class Twitter
 	 */
 	public function destroy($id)
 	{
-		$xml = $this->httpRequest("http://twitter.com/statuses/destroy/$id.xml", array('id' => $id));
+		$xml = $this->request("statuses/destroy/$id");
 		return $xml->id ? (string) $xml->id : FALSE;
 	}
 
@@ -176,25 +173,29 @@ class Twitter
 	 */
 	public function search($query, $flags = self::JSON)
 	{
-		return $this->httpRequest(
-			'http://search.twitter.com/search.' . self::getFormat($flags),
-			array('q' => $query)
-		)->results;
+		return $this->request('http://search.twitter.com/search.' . self::getFormat($flags), array('q' => $query))->results;
 	}
 
 
 
 	/**
 	 * Process HTTP request.
-	 * @param  string  URL
+	 * @param  string  URL or twitter command
 	 * @param  string  HTTP method
 	 * @param  array   data
 	 * @return mixed
 	 * @throws TwitterException
 	 */
-	private function httpRequest($url, $data = NULL, $method = 'POST')
+	public function request($request, $data = NULL, $method = 'POST')
 	{
-		$request = OAuthRequest::from_consumer_and_token($this->consumer, $this->token, $method, $url, $data);
+		if (!strpos($request, '://')) {
+			if (!strpos($request, '.')) {
+				$request .= '.json';
+			}
+			$request = 'http://api.twitter.com/1/' . $request;
+		}
+
+		$request = OAuthRequest::from_consumer_and_token($this->consumer, $this->token, $method, $request, $data);
 		$request->sign_request($this->signatureMethod, $this->consumer, $this->token);
 
 		$curl = curl_init();
@@ -241,16 +242,16 @@ class Twitter
 
 	/**
 	 * Cached HTTP request.
-	 * @param  string  URL
+	 * @param  string  URL or twitter command
 	 * @return mixed
 	 */
-	private function cachedHttpRequest($url, $data)
+	public function cachedRequest($request, $data)
 	{
 		if (!self::$cacheDir) {
-			return $this->httpRequest($url, $data, 'GET');
+			return $this->request($request, $data, 'GET');
 		}
 
-		$cacheFile = self::$cacheDir . '/twitter.' . md5($url);
+		$cacheFile = self::$cacheDir . '/twitter.' . md5($request);
 		$cache = @file_get_contents($cacheFile); // intentionally @
 		$cache = strncmp($cache, '<', 1) ? @json_decode($cache) : @simplexml_load_string($cache); // intentionally @
 		if ($cache && @filemtime($cacheFile) + self::$cacheExpire > time()) { // intentionally @
@@ -258,7 +259,7 @@ class Twitter
 		}
 
 		try {
-			$payload = $this->httpRequest($url, $data, 'GET');
+			$payload = $this->request($request, $data, 'GET');
 			file_put_contents($cacheFile, $payload instanceof SimpleXMLElement ? $payload->asXml() : json_encode($payload));
 			return $payload;
 
