@@ -120,7 +120,10 @@ class Twitter
 			throw new InvalidArgumentException;
 		}
 
-		return $this->cachedHttpRequest("http://twitter.com/statuses/" . $timelines[$flags & 0x0F] . '.' . $formats[$flags & 0x30] . "?count=$count&page=$page");
+		return $this->cachedHttpRequest("http://twitter.com/statuses/" . $timelines[$flags & 0x0F] . '.' . $formats[$flags & 0x30], array(
+			'count' => $count,
+			'page' => $page,
+		));
 	}
 
 
@@ -164,14 +167,14 @@ class Twitter
 	/**
 	 * Process HTTP request.
 	 * @param  string  URL
-	 * @param  array   POST data
+	 * @param  string  HTTP method
+	 * @param  array   data
 	 * @return mixed
 	 * @throws TwitterException
 	 */
-	private function httpRequest($url, $postData = NULL)
+	private function httpRequest($url, $data = NULL, $method = 'POST')
 	{
 		$curl = curl_init();
-		curl_setopt($curl, CURLOPT_URL, $url);
 		if ($this->user) {
 			curl_setopt($curl, CURLOPT_USERPWD, "$this->user:$this->pass");
 		}
@@ -180,10 +183,13 @@ class Twitter
 		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
 		curl_setopt($curl, CURLOPT_HTTPHEADER, array('Expect:'));
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE); // no echo, just return result
-		if ($postData) {
+		if ($method === 'POST') {
 			curl_setopt($curl, CURLOPT_POST, TRUE);
-			curl_setopt($curl, CURLOPT_POSTFIELDS, $postData);
+			curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+		} else {
+			$url .= '?' . http_build_query($data, '', '&');
 		}
+		curl_setopt($curl, CURLOPT_URL, $url);
 
 		$result = curl_exec($curl);
 		if (curl_errno($curl)) {
@@ -217,10 +223,10 @@ class Twitter
 	 * @param  string  URL
 	 * @return mixed
 	 */
-	private function cachedHttpRequest($url)
+	private function cachedHttpRequest($url, $data)
 	{
 		if (!self::$cacheDir) {
-			return $this->httpRequest($url);
+			return $this->httpRequest($url, $data, 'GET');
 		}
 
 		$cacheFile = self::$cacheDir . '/twitter.' . md5($url);
@@ -231,7 +237,7 @@ class Twitter
 		}
 
 		try {
-			$payload = $this->httpRequest($url);
+			$payload = $this->httpRequest($url, $data, 'GET');
 			file_put_contents($cacheFile, $payload instanceof SimpleXMLElement ? $payload->asXml() : json_encode($payload));
 			return $payload;
 
