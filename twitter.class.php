@@ -166,14 +166,18 @@ class Twitter
 
 	/**
 	 * Returns tweets that match a specified query.
-	 * @param  string   query
+	 * @param  string|array   query
 	 * @param  int      format (JSON | ATOM)
 	 * @return mixed
 	 * @throws TwitterException
 	 */
 	public function search($query, $flags = self::JSON)
 	{
-		return $this->request('http://search.twitter.com/search.' . self::getFormat($flags), array('q' => $query))->results;
+		return $this->request(
+			'http://search.twitter.com/search.' . self::getFormat($flags),
+			is_array($query) ? $query : array('q' => $query),
+			'GET'
+		)->results;
 	}
 
 

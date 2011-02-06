@@ -6,6 +6,7 @@ require_once '../twitter.class.php';
 $twitter = new Twitter;
 
 $results = $twitter->search('#nette');
+// or use hashmap: $results = $twitter->search(array('q' => '#nette', 'geocode' => '50.088224,15.975611,20km'));
 
 ?>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
