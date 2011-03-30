@@ -22,8 +22,8 @@ Requirements
 Usage
 -----
 
-Sign in to the http://twitter.com and register an application from the http://dev.twitter.com/apps page. Remember 
-to never reveal your consumer secrets. Click on My Access Token link from the sidebar and retrieve your own access 
+Sign in to the http://twitter.com and register an application from the http://dev.twitter.com/apps page. Remember
+to never reveal your consumer secrets. Click on My Access Token link from the sidebar and retrieve your own access
 token. Now you have consumer key, consumer secret, access token and access token secret.
 
 Create object using application and request/access keys

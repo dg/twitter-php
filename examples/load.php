@@ -12,13 +12,16 @@ $twitter = new Twitter($consumerKey, $consumerSecret, $accessToken, $accessToken
 $channel = $twitter->load(Twitter::ME_AND_FRIENDS);
 
 ?>
+<!doctype html>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Twitter timeline demo</title>
 
 <ul>
-<?foreach ($channel->status as $status): ?>
-	<li><a href="http://twitter.com/<?=$status->user->screen_name?>"><img src="<?=$status->user->profile_image_url?>"> <?=$status->user->name?></a>:
-	<?=$status->text?>
-	<small>at <?=date("j.n.Y H:i", strtotime($status->created_at))?></small>
+<?php foreach ($channel->status as $status): ?>
+	<li><a href="http://twitter.com/<?php echo $status->user->screen_name ?>"><img src="<?php echo htmlspecialchars($status->user->profile_image_url) ?>">
+		<?php echo htmlspecialchars($status->user->name) ?></a>:
+		<?php echo $status->text ?>
+		<small>at <?php echo date("j.n.Y H:i", strtotime($status->created_at)) ?></small>
 	</li>
-<?endforeach?>
+<?php endforeach ?>
 </ul>
