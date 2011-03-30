@@ -278,6 +278,42 @@ class Twitter
 
 
 	/**
+	 * Makes twitter links, @usernames and #hashtags clickable.
+	 * @param  string
+	 * @return string
+	 */
+	public static function clickable($s)
+	{
+		return preg_replace_callback(
+			'~(?<!\w)(https?://\S+\w|www\.\S+\w|@\w+|#\w+|<>&)~u',
+			array(__CLASS__, 'clickableCallback'),
+			html_entity_decode($s, ENT_QUOTES, 'UTF-8')
+		);
+	}
+
+
+
+	private static function clickableCallback($m)
+	{
+		$m = htmlspecialchars($m[1]);
+		if ($m[0] === '#') {
+			$m = substr($m, 1);
+			return "<a href='http://twitter.com/search?q=%23$m'>#$m</a>";
+		} elseif ($m[0] === '@') {
+			$m = substr($m, 1);
+			return "@<a href='http://www.twitter.com/$m'>$m</a>";
+		} elseif ($m[0] === 'w') {
+			return "<a href='http://$m'>$m</a>";
+		} elseif ($m[0] === 'h') {
+			return "<a href='$m'>$m</a>";
+		} else {
+			return $m;
+		}
+	}
+
+
+
+	/**
 	 * Shortens URL using http://is.gd API.
 	 * @param  array
 	 * @return string

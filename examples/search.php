@@ -17,7 +17,7 @@ $results = $twitter->search('#nette');
 <?php foreach ($results as $result): ?>
 	<li><a href="http://twitter.com/<?php echo $result->from_user ?>"><img src="<?php echo htmlspecialchars($result->profile_image_url) ?>" width="48">
 		<?php echo htmlspecialchars($result->from_user) ?></a>:
-		<?php echo $result->text ?>
+		<?php echo Twitter::clickable($result->text) ?>
 		<small>at <?php echo date("j.n.Y H:i", strtotime($result->created_at)) ?></small>
 	</li>
 <?php endforeach ?>
