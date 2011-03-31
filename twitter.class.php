@@ -54,7 +54,6 @@ class Twitter
 	 * @param  string  optional access token
 	 * @param  string  optinal access token secret
 	 * @throws TwitterException when CURL extension is not loaded
-	 * @throws TwitterAuthException to signalize individual authorization steps
 	 */
 	public function __construct($consumerKey = NULL, $consumerSecret = NULL, $accessToken = NULL, $accessTokenSecret = NULL)
 	{

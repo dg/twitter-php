@@ -9,7 +9,7 @@ messages to Twitter and receiving status updates.
 
 
 Project at GitHub: http://github.com/dg/twitter-php
-Twitter's API documentation: http://apiwiki.twitter.com/Twitter-API-Documentation
+Twitter's API documentation: http://dev.twitter.com/doc
 My PHP blog: http://phpfashion.com
 
 
