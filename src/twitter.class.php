@@ -32,10 +32,8 @@ class Twitter
 
 	/** @var array */
 	public $httpOptions = array(
-		CURLOPT_TIMEOUT => 20,
-		CURLOPT_SSL_VERIFYPEER => 0,
-		CURLOPT_HTTPHEADER => array('Expect:'),
-		CURLOPT_USERAGENT => 'Twitter for PHP',
+		'timeout' => 20,
+		'user_agent' => 'Twitter for PHP',
 	);
 
 	/** @var Twitter_OAuthSignatureMethod */
@@ -55,14 +53,13 @@ class Twitter
 	 * @param  string  app secret
 	 * @param  string  optional access token
 	 * @param  string  optinal access token secret
-	 * @throws TwitterException when CURL extension is not loaded
+	 * @throws TwitterException when allow_url_fopen is not enabled
 	 */
 	public function __construct($consumerKey, $consumerSecret, $accessToken = NULL, $accessTokenSecret = NULL)
 	{
-		if (!extension_loaded('curl')) {
-			throw new TwitterException('PHP extension CURL is not loaded.');
+		if (!ini_get('allow_url_fopen') || !extension_loaded('openssl')) {
+			throw new TwitterException('Class Twitter requires that directive allow_url_fopen and extension openssl are enabled.');
 		}
-
 		$this->signatureMethod = new Twitter_OAuthSignatureMethod_HMAC_SHA1();
 		$this->consumer = new Twitter_OAuthConsumer($consumerKey, $consumerSecret);
 		$this->token = new Twitter_OAuthConsumer($accessToken, $accessTokenSecret);
@@ -208,24 +205,20 @@ class Twitter
 		$request = Twitter_OAuthRequest::from_consumer_and_token($this->consumer, $this->token, $method, $resource, $data);
 		$request->sign_request($this->signatureMethod, $this->consumer, $this->token);
 
-		$options = array(
-			CURLOPT_HEADER => FALSE,
-			CURLOPT_RETURNTRANSFER => TRUE,
-		) + ($method === 'POST' ? array(
-			CURLOPT_POST => TRUE,
-			CURLOPT_POSTFIELDS => $request->to_postdata(),
-			CURLOPT_URL => $request->get_normalized_http_url(),
-		) : array(
-			CURLOPT_URL => $request->to_url(),
-		)) + $this->httpOptions;
+		$context = stream_context_create(array(
+			'http' => array(
+				'method' => $method,
+				'content' => $method === 'POST' ? $request->to_postdata() : NULL,
+			) + $this->httpOptions,
+		));
 
-		$curl = curl_init();
-		curl_setopt_array($curl, $options);
-		$result = curl_exec($curl);
-		if (curl_errno($curl)) {
-			throw new TwitterException('Server error: ' . curl_error($curl));
+		$f = @fopen($method === 'POST' ? $request->get_normalized_http_url() : $request->to_url(), 'r', FALSE, $context);
+		if (!$f) {
+			$err = error_get_last();
+			throw new TwitterException('Server error' . substr(strstr($err['message'], ')'), 1));
 		}
 
+		$result = stream_get_contents($f);
 		$payload = version_compare(PHP_VERSION, '5.4.0') >= 0 ?
 			@json_decode($result, FALSE, 128, JSON_BIGINT_AS_STRING) : @json_decode($result); // intentionally @
 
@@ -233,7 +226,8 @@ class Twitter
 			throw new TwitterException('Invalid server response');
 		}
 
-		$code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+		$meta = stream_get_meta_data($f);
+		$code = preg_match('~^HTTP/[\d.]+ (\d+)~m', implode("\n", array_reverse($meta['wrapper_data'])), $m) ? (int) $m[1] : NULL;
 		if ($code >= 400) {
 			throw new TwitterException(isset($payload->errors[0]->message) ? $payload->errors[0]->message : "Server error #$code", $code);
 		}

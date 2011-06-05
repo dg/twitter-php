@@ -4,7 +4,7 @@
 Twitter for PHP is a very small and easy-to-use library for sending
 messages to Twitter and receiving status updates.
 
-It requires PHP 5.0 or newer with CURL extension and is licensed under the New BSD License.
+It requires PHP 5.0 or newer with enabled `allow_url_fopen` and `openssl` and is licensed under the New BSD License.
 You can obtain the latest version from our [GitHub repository](http://github.com/dg/twitter-php)
 or install it via Composer:
 
