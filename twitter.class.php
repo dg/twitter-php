@@ -11,7 +11,7 @@ require_once dirname(__FILE__) . '/OAuth.php';
  * @license    New BSD License
  * @link       http://phpfashion.com/
  * @see        http://dev.twitter.com/doc
- * @version    2.0
+ * @version    2.2
  */
 class Twitter
 {
@@ -53,14 +53,13 @@ class Twitter
 	 * @param  string  app secret
 	 * @param  string  optional access token
 	 * @param  string  optinal access token secret
-	 * @throws TwitterException when CURL extension is not loaded
+	 * @throws TwitterException when allow_url_fopen is not enabled
 	 */
 	public function __construct($consumerKey = NULL, $consumerSecret = NULL, $accessToken = NULL, $accessTokenSecret = NULL)
 	{
-		if (!extension_loaded('curl')) {
-			throw new TwitterException('PHP extension CURL is not loaded.');
+		if (!ini_get('allow_url_fopen')) {
+			throw new TwitterException('PHP directive allow_url_fopen is not enabled.');
 		}
-
 		$this->signatureMethod = new OAuthSignatureMethod_HMAC_SHA1();
 		$this->consumer = new OAuthConsumer($consumerKey, $consumerSecret);
 		$this->token = new OAuthConsumer($accessToken, $accessTokenSecret);
@@ -201,43 +200,27 @@ class Twitter
 		$request = OAuthRequest::from_consumer_and_token($this->consumer, $this->token, $method, $request, $data);
 		$request->sign_request($this->signatureMethod, $this->consumer, $this->token);
 
-		$curl = curl_init();
-		curl_setopt($curl, CURLOPT_HEADER, FALSE);
-		curl_setopt($curl, CURLOPT_TIMEOUT, 20);
-		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-		curl_setopt($curl, CURLOPT_HTTPHEADER, array('Expect:'));
-		curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE); // no echo, just return result
-		curl_setopt($curl, CURLOPT_USERAGENT, 'Twitter for PHP');
-		if ($method === 'POST') {
-			curl_setopt($curl, CURLOPT_POST, TRUE);
-			curl_setopt($curl, CURLOPT_POSTFIELDS, $request->to_postdata());
-			curl_setopt($curl, CURLOPT_URL, $request->get_normalized_http_url());
-		} else {
-			curl_setopt($curl, CURLOPT_URL, $request->to_url());
+		$options = array(
+			'method' => $method,
+			'timeout' => 20,
+			'content' => $method === 'POST' ? $request->to_postdata() : NULL,
+			'user_agent' => 'Twitter for PHP',
+		);
+
+		$f = @fopen($method === 'POST' ? $request->get_normalized_http_url() : $request->to_url(),
+			'r', FALSE, stream_context_create(array('http' => $options)));
+		if (!$f) {
+			throw new TwitterException('Server error');
 		}
 
-		$result = curl_exec($curl);
-		if (curl_errno($curl)) {
-			throw new TwitterException('Server error: ' . curl_error($curl));
-		}
-
-		$type = curl_getinfo($curl, CURLINFO_CONTENT_TYPE);
-		if (strpos($type, 'xml')) {
-			$payload = @simplexml_load_string($result); // intentionally @
-
-		} elseif (strpos($type, 'json')) {
-			$payload = @json_decode($result); // intentionally @
-		}
-
+		$result = stream_get_contents($f);
+		$payload = @simplexml_load_string($result); // intentionally @
 		if (empty($payload)) {
-			throw new TwitterException('Invalid server response');
+			$payload = @json_decode($result); // intentionally @
+			if (empty($payload)) {
+				throw new TwitterException('Invalid server response');
+			}
 		}
-
-		$code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-		if ($code >= 400) {
-			throw new TwitterException(isset($payload->error) ? $payload->error : "Server error #$code", $code);
-		}
-
 		return $payload;
 	}
 
@@ -319,14 +302,8 @@ class Twitter
 	 */
 	private function shortenUrl($m)
 	{
-		$curl = curl_init();
-		curl_setopt($curl, CURLOPT_URL, 'http://is.gd/api.php?longurl=' . urlencode($m[0]));
-		curl_setopt($curl, CURLOPT_HEADER, FALSE);
-		curl_setopt($curl, CURLOPT_TIMEOUT, 20);
-		curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
-		$result = curl_exec($curl);
-		$code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-		return curl_errno($curl) || $code >= 400 ? $m[0] : $result;
+		$f = @fopen('http://is.gd/api.php?longurl=' . urlencode($m[0]), 'r');
+		return $f ? stream_get_contents($f) : $m[0];
 	}
 
 

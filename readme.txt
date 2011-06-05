@@ -16,7 +16,7 @@ My PHP blog: http://phpfashion.com
 Requirements
 ------------
 - PHP (version 5 or better)
-- cURL extension
+- enabled allow_url_fopen
 
 
 Usage
