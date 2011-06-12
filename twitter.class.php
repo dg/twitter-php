@@ -229,18 +229,23 @@ class Twitter
 	/**
 	 * Cached HTTP request.
 	 * @param  string  URL or twitter command
-	 * @return array
+	 * @param  array
+	 * @param  int
+	 * @return mixed
 	 */
-	public function cachedRequest($request, $data = NULL)
+	public function cachedRequest($request, $data = NULL, $cacheExpire = NULL)
 	{
 		if (!self::$cacheDir) {
 			return $this->request($request, $data, 'GET');
+		}
+		if ($cacheExpire === NULL) {
+			$cacheExpire = self::$cacheExpire;
 		}
 
 		$cacheFile = self::$cacheDir . '/twitter.' . md5($request . json_encode($data));
 		$cache = @file_get_contents($cacheFile); // intentionally @
 		$cache = strncmp($cache, '<', 1) ? @json_decode($cache) : @simplexml_load_string($cache); // intentionally @
-		if ($cache && @filemtime($cacheFile) + self::$cacheExpire > time()) { // intentionally @
+		if ($cache && @filemtime($cacheFile) + $cacheExpire > time()) { // intentionally @
 			return $cache;
 		}
 
