@@ -305,7 +305,7 @@ class Twitter
 			return "<a href='http://twitter.com/search?q=%23$m'>#$m</a>";
 		} elseif ($m[0] === '@') {
 			$m = substr($m, 1);
-			return "@<a href='http://www.twitter.com/$m'>$m</a>";
+			return "@<a href='http://twitter.com/$m'>$m</a>";
 		} elseif ($m[0] === 'w') {
 			return "<a href='http://$m'>$m</a>";
 		} elseif ($m[0] === 'h') {
