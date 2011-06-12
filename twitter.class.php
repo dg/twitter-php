@@ -184,8 +184,8 @@ class Twitter
 	/**
 	 * Process HTTP request.
 	 * @param  string  URL or twitter command
-	 * @param  string  HTTP method
 	 * @param  array   data
+	 * @param  string  HTTP method
 	 * @return mixed
 	 * @throws TwitterException
 	 */
@@ -246,15 +246,15 @@ class Twitter
 	/**
 	 * Cached HTTP request.
 	 * @param  string  URL or twitter command
-	 * @return mixed
+	 * @return array
 	 */
-	public function cachedRequest($request, $data)
+	public function cachedRequest($request, $data = NULL)
 	{
 		if (!self::$cacheDir) {
 			return $this->request($request, $data, 'GET');
 		}
 
-		$cacheFile = self::$cacheDir . '/twitter.' . md5($request);
+		$cacheFile = self::$cacheDir . '/twitter.' . md5($request . json_encode($data));
 		$cache = @file_get_contents($cacheFile); // intentionally @
 		$cache = strncmp($cache, '<', 1) ? @json_decode($cache) : @simplexml_load_string($cache); // intentionally @
 		if ($cache && @filemtime($cacheFile) + self::$cacheExpire > time()) { // intentionally @
