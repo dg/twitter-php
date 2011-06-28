@@ -45,6 +45,27 @@ class Twitter
 	/** @var OAuthConsumer */
 	private $token;
 
+	/** 
+	 * @var string
+	 * @uses microblogging service used in class.
+	 * @example twitter, twitter.com or null to use Twitter service
+	 * @example others values will be treated as StatusNet services (including  sites like identi.ca that run on it). 
+	 * @usedby getSearchUrl, clickable
+	 * @see http://status.net/wiki/TwitterCompatibleAPI
+	 */
+	private $service;
+	
+	/**
+	 * Set service to use
+	 * @param string $service 
+	 */
+	public function setService($service) {
+		if (!$service || in_array(strtolower($service), array('twitter', 'twitter.com')))
+			$this->service = 'twitter';
+		else
+			$this->service = $service;
+	}
+
 
 
 	/**
@@ -53,9 +74,10 @@ class Twitter
 	 * @param  string  app secret
 	 * @param  string  optional access token
 	 * @param  string  optinal access token secret
+	 * @param  string  microblogging service
 	 * @throws TwitterException when allow_url_fopen is not enabled
 	 */
-	public function __construct($consumerKey = NULL, $consumerSecret = NULL, $accessToken = NULL, $accessTokenSecret = NULL)
+	public function __construct($consumerKey = NULL, $consumerSecret = NULL, $accessToken = NULL, $accessTokenSecret = NULL, $service = NULL)
 	{
 		if (!ini_get('allow_url_fopen')) {
 			throw new TwitterException('PHP directive allow_url_fopen is not enabled.');
@@ -63,6 +85,7 @@ class Twitter
 		$this->signatureMethod = new OAuthSignatureMethod_HMAC_SHA1();
 		$this->consumer = new OAuthConsumer($consumerKey, $consumerSecret);
 		$this->token = new OAuthConsumer($accessToken, $accessTokenSecret);
+		$this->setService($service);
 	}
 
 
@@ -171,8 +194,9 @@ class Twitter
 	 */
 	public function search($query, $flags = self::JSON)
 	{
+		
 		return $this->request(
-			'http://search.twitter.com/search.' . self::getFormat($flags),
+			self::getSearchUrl() . '/search.' . self::getFormat($flags),
 			is_array($query) ? $query : array('q' => $query),
 			'GET'
 		)->results;
@@ -221,6 +245,9 @@ class Twitter
 				throw new TwitterException('Invalid server response');
 			}
 		}
+		if ($this->service)
+			foreach ($payload->results as $key => $value)
+				$payload->results[$key]->service = $this->service;
 		return $payload;
 	}
 
@@ -264,8 +291,9 @@ class Twitter
 	 * @param  string
 	 * @return string
 	 */
-	public static function clickable($s)
+	public function clickable($s, $service = NULL)
 	{
+		if ($service) $this->service = $service;
 		return preg_replace_callback(
 			'~(?<!\w)(https?://\S+\w|www\.\S+\w|@\w+|#\w+|<>&)~u',
 			array(__CLASS__, 'clickableCallback'),
@@ -275,15 +303,15 @@ class Twitter
 
 
 
-	private static function clickableCallback($m)
+	private function clickableCallback($m)
 	{
 		$m = htmlspecialchars($m[1]);
 		if ($m[0] === '#') {
-			$m = substr($m, 1);
-			return "<a href='http://twitter.com/search?q=%23$m'>#$m</a>";
+			$m = substr($m, 1);			
+			return "<a href='" . $this->getClickableTagUrl($m) . "'>#$m</a>";
 		} elseif ($m[0] === '@') {
 			$m = substr($m, 1);
-			return "@<a href='http://www.twitter.com/$m'>$m</a>";
+			return "@<a href='" . $this->getClickableUserUrl($m) . "'>$m</a>";
 		} elseif ($m[0] === 'w') {
 			return "<a href='http://$m'>$m</a>";
 		} elseif ($m[0] === 'h') {
@@ -317,6 +345,50 @@ class Twitter
 		} else {
 			throw new InvalidArgumentException('Invalid format');
 		}
+	}
+
+
+	
+	private function getRquestUrl($service = NULL)
+	{
+		if (!$service) $service = $this->service;
+		if ($service == 'twitter')
+			return 'http://api.twitter.com/1';
+		else
+			return "http://$service/api";
+	}
+
+	
+	
+	private function getSearchUrl($service = NULL)
+	{
+		if (!$service) $service = $this->service;
+		if ($service == 'twitter')
+			return 'http://search.twitter.com';
+		else
+			return "http://$service/api";
+	}
+
+	
+	
+	private function getClickableTagUrl($tag, $service = NULL)
+	{
+		if (!$service) $service = $this->service;
+		if ($service = 'twitter')
+			return "http://twitter.com/search$tag?q=%23$m";
+		else
+			return "http://$service/search/notice$tag?q=%23$m";
+	}
+
+
+
+	public function getClickableUserUrl($user, $service = NULL)
+	{
+		if (!$service) $service = $this->service;
+		if ($service = 'twitter')
+			return "http://twitter.com/#!/$user";
+		else
+			return "http://$service/$user";
 	}
 
 }
