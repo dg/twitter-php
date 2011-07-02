@@ -183,8 +183,8 @@ class Twitter
 	/**
 	 * Process HTTP request.
 	 * @param  string  URL or twitter command
-	 * @param  string  HTTP method
 	 * @param  array   data
+	 * @param  string  HTTP method
 	 * @return mixed
 	 * @throws TwitterException
 	 */
@@ -229,18 +229,23 @@ class Twitter
 	/**
 	 * Cached HTTP request.
 	 * @param  string  URL or twitter command
+	 * @param  array
+	 * @param  int
 	 * @return mixed
 	 */
-	public function cachedRequest($request, $data)
+	public function cachedRequest($request, $data = NULL, $cacheExpire = NULL)
 	{
 		if (!self::$cacheDir) {
 			return $this->request($request, $data, 'GET');
 		}
+		if ($cacheExpire === NULL) {
+			$cacheExpire = self::$cacheExpire;
+		}
 
-		$cacheFile = self::$cacheDir . '/twitter.' . md5($request);
+		$cacheFile = self::$cacheDir . '/twitter.' . md5($request . json_encode($data));
 		$cache = @file_get_contents($cacheFile); // intentionally @
 		$cache = strncmp($cache, '<', 1) ? @json_decode($cache) : @simplexml_load_string($cache); // intentionally @
-		if ($cache && @filemtime($cacheFile) + self::$cacheExpire > time()) { // intentionally @
+		if ($cache && @filemtime($cacheFile) + $cacheExpire > time()) { // intentionally @
 			return $cache;
 		}
 
@@ -283,7 +288,7 @@ class Twitter
 			return "<a href='http://twitter.com/search?q=%23$m'>#$m</a>";
 		} elseif ($m[0] === '@') {
 			$m = substr($m, 1);
-			return "@<a href='http://www.twitter.com/$m'>$m</a>";
+			return "@<a href='http://twitter.com/$m'>$m</a>";
 		} elseif ($m[0] === 'w') {
 			return "<a href='http://$m'>$m</a>";
 		} elseif ($m[0] === 'h') {
