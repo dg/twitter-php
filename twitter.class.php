@@ -374,7 +374,7 @@ class Twitter
 	private function getClickableTagUrl($tag, $service = NULL)
 	{
 		if (!$service) $service = $this->service;
-		if ($service = 'twitter')
+		if ($service == 'twitter')
 			return "http://twitter.com/search$tag?q=%23$m";
 		else
 			return "http://$service/search/notice$tag?q=%23$m";
@@ -385,7 +385,7 @@ class Twitter
 	public function getClickableUserUrl($user, $service = NULL)
 	{
 		if (!$service) $service = $this->service;
-		if ($service = 'twitter')
+		if ($service == 'twitter')
 			return "http://twitter.com/#!/$user";
 		else
 			return "http://$service/$user";
