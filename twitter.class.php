@@ -289,7 +289,7 @@ class Twitter
 	public static function clickable($s)
 	{
 		return preg_replace_callback(
-			'~(?<!\w)(https?://\S+\w|www\.\S+\w|@\w+|#\w+|<>&)~u',
+			'~(?<!\w)(https?://\S+\w|www\.\S+\w|@\w+|#\w+)|[<>&]~u',
 			array(__CLASS__, 'clickableCallback'),
 			html_entity_decode($s, ENT_QUOTES, 'UTF-8')
 		);
@@ -299,7 +299,7 @@ class Twitter
 
 	private static function clickableCallback($m)
 	{
-		$m = htmlspecialchars($m[1]);
+		$m = htmlspecialchars($m[0]);
 		if ($m[0] === '#') {
 			$m = substr($m, 1);
 			return "<a href='http://twitter.com/search?q=%23$m'>#$m</a>";
