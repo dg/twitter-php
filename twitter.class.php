@@ -76,8 +76,8 @@ class Twitter
 	public function authenticate()
 	{
 		try {
-			$xml = $this->request('account/verify_credentials', NULL, 'GET');
-			return !empty($xml->id);
+			$res = $this->request('account/verify_credentials', NULL, 'GET');
+			return !empty($res->id);
 
 		} catch (TwitterException $e) {
 			if ($e->getCode() === 401) {
@@ -101,8 +101,8 @@ class Twitter
 			$message = preg_replace_callback('#https?://\S+[^:);,.!?\s]#', array($this, 'shortenUrl'), $message);
 		}
 
-		$xml = $this->request('statuses/update', array('status' => $message));
-		return $xml->id ? (string) $xml->id : FALSE;
+		$res = $this->request('statuses/update', array('status' => $message));
+		return $res->id ? (string) $res->id : FALSE;
 	}
 
 
@@ -157,8 +157,8 @@ class Twitter
 	 */
 	public function destroy($id)
 	{
-		$xml = $this->request("statuses/destroy/$id");
-		return $xml->id ? (string) $xml->id : FALSE;
+		$res = $this->request("statuses/destroy/$id");
+		return $res->id ? (string) $res->id : FALSE;
 	}
 
 
