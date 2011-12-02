@@ -375,9 +375,9 @@ class Twitter
 	{
 		if (!$service) $service = $this->service;
 		if ($service == 'twitter')
-			return "http://twitter.com/search$tag?q=%23$m";
+			return "http://twitter.com/#!/search/%23$tag";
 		else
-			return "http://$service/search/notice$tag?q=%23$m";
+			return "http://$service/search/notice?q=%23$tag";
 	}
 
 
