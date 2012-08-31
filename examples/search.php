@@ -1,6 +1,6 @@
 <?php
 
-require_once '../twitter.class.php';
+require_once '../library/twitter.class.php';
 
 
 $twitter = new Twitter;
