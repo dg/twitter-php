@@ -15,6 +15,8 @@ require_once dirname(__FILE__) . '/OAuth.php';
  */
 class Twitter
 {
+	const API_URL = 'http://api.twitter.com/1.1/';
+
 	/**#@+ Timeline {@link Twitter::load()} */
 	const ME = 1;
 	const ME_AND_FRIENDS = 2;
@@ -195,7 +197,7 @@ class Twitter
 			if (!strpos($request, '.')) {
 				$request .= '.json';
 			}
-			$request = 'http://api.twitter.com/1/' . $request;
+			$request = self::API_URL . $request;
 		}
 
 		$request = OAuthRequest::from_consumer_and_token($this->consumer, $this->token, $method, $request, $data);
