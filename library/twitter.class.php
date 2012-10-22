@@ -175,10 +175,10 @@ class Twitter
 	public function search($query, $flags = self::JSON)
 	{
 		return $this->request(
-			'http://search.twitter.com/search.' . self::getFormat($flags),
+			'/search/tweets.' . self::getFormat($flags),
 			is_array($query) ? $query : array('q' => $query),
 			'GET'
-		)->results;
+		)->statuses;
 	}
 
 
