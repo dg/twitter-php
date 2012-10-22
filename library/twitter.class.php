@@ -119,7 +119,7 @@ class Twitter
 	 */
 	public function load($flags = self::ME, $count = 20, $page = 1)
 	{
-		static $timelines = array(self::ME => 'user_timeline', self::ME_AND_FRIENDS => 'friends_timeline', self::REPLIES => 'mentions', self::ALL => 'public_timeline');
+		static $timelines = array(self::ME => 'user_timeline', self::ME_AND_FRIENDS => 'friends_timeline', self::REPLIES => 'mentions_timeline', self::ALL => 'public_timeline');
 
 		if (!is_int($flags)) { // back compatibility
 			$flags = $flags ? self::ME_AND_FRIENDS : self::ME;
