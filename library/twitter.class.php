@@ -15,6 +15,8 @@ require_once dirname(__FILE__) . '/OAuth.php';
  */
 class Twitter
 {
+	const API_URL = 'http://api.twitter.com/1.1/';
+
 	/**#@+ Timeline {@link Twitter::load()} */
 	const ME = 1;
 	const ME_AND_FRIENDS = 2;
@@ -117,7 +119,7 @@ class Twitter
 	 */
 	public function load($flags = self::ME, $count = 20, $page = 1)
 	{
-		static $timelines = array(self::ME => 'user_timeline', self::ME_AND_FRIENDS => 'friends_timeline', self::REPLIES => 'mentions', self::ALL => 'public_timeline');
+		static $timelines = array(self::ME => 'user_timeline', self::ME_AND_FRIENDS => 'friends_timeline', self::REPLIES => 'mentions_timeline', self::ALL => 'public_timeline');
 
 		if (!is_int($flags)) { // back compatibility
 			$flags = $flags ? self::ME_AND_FRIENDS : self::ME;
@@ -173,10 +175,10 @@ class Twitter
 	public function search($query, $flags = self::JSON)
 	{
 		return $this->request(
-			'http://search.twitter.com/search.' . self::getFormat($flags),
+			'/search/tweets.' . self::getFormat($flags),
 			is_array($query) ? $query : array('q' => $query),
 			'GET'
-		)->results;
+		)->statuses;
 	}
 
 
@@ -195,7 +197,7 @@ class Twitter
 			if (!strpos($request, '.')) {
 				$request .= '.json';
 			}
-			$request = 'http://api.twitter.com/1/' . $request;
+			$request = self::API_URL . $request;
 		}
 
 		$request = Twitter_OAuthRequest::from_consumer_and_token($this->consumer, $this->token, $method, $request, $data);
