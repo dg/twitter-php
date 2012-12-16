@@ -49,7 +49,7 @@ class Twitter
 	 * @param  string  optinal access token secret
 	 * @throws TwitterException when CURL extension is not loaded
 	 */
-	public function __construct($consumerKey = NULL, $consumerSecret = NULL, $accessToken = NULL, $accessTokenSecret = NULL)
+	public function __construct($consumerKey, $consumerSecret, $accessToken = NULL, $accessTokenSecret = NULL)
 	{
 		if (!extension_loaded('curl')) {
 			throw new TwitterException('PHP extension CURL is not loaded.');

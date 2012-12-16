@@ -3,7 +3,8 @@
 require_once '../src/twitter.class.php';
 
 
-$twitter = new Twitter;
+// ENTER HERE YOUR CREDENTIALS (see readme.txt)
+$twitter = new Twitter($consumerKey, $consumerSecret, $accessToken, $accessTokenSecret);
 
 $results = $twitter->search('#nette');
 // or use hashmap: $results = $twitter->search(array('q' => '#nette', 'geocode' => '50.088224,15.975611,20km'));
