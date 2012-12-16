@@ -21,7 +21,6 @@ class Twitter
 	const ME = 1;
 	const ME_AND_FRIENDS = 2;
 	const REPLIES = 3;
-	const ALL = 4;
 	const RETWEETS = 128; // include retweets?
 	/**#@-*/
 
@@ -104,7 +103,7 @@ class Twitter
 
 	/**
 	 * Returns the most recent statuses.
-	 * @param  int    timeline (ME | ME_AND_FRIENDS | REPLIES | ALL) and optional (RETWEETS)
+	 * @param  int    timeline (ME | ME_AND_FRIENDS | REPLIES) and optional (RETWEETS)
 	 * @param  int    number of statuses to retrieve
 	 * @param  int    page of results to retrieve
 	 * @return mixed
@@ -112,7 +111,7 @@ class Twitter
 	 */
 	public function load($flags = self::ME, $count = 20, $page = 1)
 	{
-		static $timelines = array(self::ME => 'user_timeline', self::ME_AND_FRIENDS => 'friends_timeline', self::REPLIES => 'mentions_timeline', self::ALL => 'public_timeline');
+		static $timelines = array(self::ME => 'user_timeline', self::ME_AND_FRIENDS => 'friends_timeline', self::REPLIES => 'mentions_timeline');
 
 		if (!is_int($flags)) { // back compatibility
 			$flags = $flags ? self::ME_AND_FRIENDS : self::ME;
