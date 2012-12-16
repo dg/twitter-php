@@ -86,7 +86,7 @@ class Twitter
 	/**
 	 * Sends message to the Twitter.
 	 * @param string   message encoded in UTF-8
-	 * @return mixed   ID on success or FALSE on failure
+	 * @return object
 	 * @throws TwitterException
 	 */
 	public function send($message)
@@ -95,8 +95,7 @@ class Twitter
 			$message = preg_replace_callback('#https?://\S+[^:);,.!?\s]#', array($this, 'shortenUrl'), $message);
 		}
 
-		$res = $this->request('statuses/update', array('status' => $message));
-		return $res->id ? (string) $res->id : FALSE;
+		return $this->request('statuses/update', array('status' => $message));
 	}
 
 
