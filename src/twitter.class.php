@@ -70,7 +70,7 @@ class Twitter
 	public function authenticate()
 	{
 		try {
-			$res = $this->request('account/verify_credentials', NULL, 'GET');
+			$res = $this->request('account/verify_credentials', 'GET');
 			return !empty($res->id);
 
 		} catch (TwitterException $e) {
@@ -91,7 +91,7 @@ class Twitter
 	 */
 	public function send($message)
 	{
-		return $this->request('statuses/update', array('status' => $message));
+		return $this->request('statuses/update', 'POST', array('status' => $message));
 	}
 
 
@@ -141,7 +141,7 @@ class Twitter
 	 */
 	public function destroy($id)
 	{
-		$res = $this->request("statuses/destroy/$id");
+		$res = $this->request("statuses/destroy/$id", 'GET');
 		return $res->id ? $res->id : FALSE;
 	}
 
@@ -155,11 +155,7 @@ class Twitter
 	 */
 	public function search($query)
 	{
-		return $this->request(
-			'/search/tweets',
-			is_array($query) ? $query : array('q' => $query),
-			'GET'
-		)->statuses;
+		return $this->request('search/tweets', 'GET', is_array($query) ? $query : array('q' => $query))->statuses;
 	}
 
 
@@ -167,21 +163,21 @@ class Twitter
 	/**
 	 * Process HTTP request.
 	 * @param  string  URL or twitter command
+	 * @param  string  HTTP method GET or POST
 	 * @param  array   data
-	 * @param  string  HTTP method
 	 * @return mixed
 	 * @throws TwitterException
 	 */
-	public function request($request, $data = NULL, $method = 'POST')
+	public function request($resource, $method, array $data = NULL)
 	{
-		if (!strpos($request, '://')) {
-			if (!strpos($request, '.')) {
-				$request .= '.json';
+		if (!strpos($resource, '://')) {
+			if (!strpos($resource, '.')) {
+				$resource .= '.json';
 			}
-			$request = self::API_URL . $request;
+			$resource = self::API_URL . $resource;
 		}
 
-		$request = Twitter_OAuthRequest::from_consumer_and_token($this->consumer, $this->token, $method, $request, $data);
+		$request = Twitter_OAuthRequest::from_consumer_and_token($this->consumer, $this->token, $method, $resource, $data);
 		$request->sign_request($this->signatureMethod, $this->consumer, $this->token);
 
 		$curl = curl_init();
@@ -227,23 +223,23 @@ class Twitter
 	 * @param  int
 	 * @return mixed
 	 */
-	public function cachedRequest($request, $data = NULL, $cacheExpire = NULL)
+	public function cachedRequest($resource, array $data = NULL, $cacheExpire = NULL)
 	{
 		if (!self::$cacheDir) {
-			return $this->request($request, $data, 'GET');
+			return $this->request($resource, 'GET', $data);
 		}
 		if ($cacheExpire === NULL) {
 			$cacheExpire = self::$cacheExpire;
 		}
 
-		$cacheFile = self::$cacheDir . '/twitter.' . md5($request . json_encode($data) . serialize(array($this->consumer, $this->token)));
+		$cacheFile = self::$cacheDir . '/twitter.' . md5($resource . json_encode($data) . serialize(array($this->consumer, $this->token)));
 		$cache = @json_decode(@file_get_contents($cacheFile)); // intentionally @
 		if ($cache && @filemtime($cacheFile) + $cacheExpire > time()) { // intentionally @
 			return $cache;
 		}
 
 		try {
-			$payload = $this->request($request, $data, 'GET');
+			$payload = $this->request($resource, 'GET', $data);
 			file_put_contents($cacheFile, json_encode($payload));
 			return $payload;
 
