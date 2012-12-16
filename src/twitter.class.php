@@ -107,15 +107,11 @@ class Twitter
 	public function load($flags = self::ME, $count = 20, $page = 1)
 	{
 		static $timelines = array(self::ME => 'user_timeline', self::ME_AND_FRIENDS => 'home_timeline', self::REPLIES => 'mentions_timeline');
-
-		if (!is_int($flags)) { // back compatibility
-			$flags = $flags ? self::ME_AND_FRIENDS : self::ME;
-
-		} elseif (!isset($timelines[$flags & 0x0F])) {
+		if (!isset($timelines[$flags & 3])) {
 			throw new InvalidArgumentException;
 		}
 
-		return $this->cachedRequest('statuses/' . $timelines[$flags & 0x0F], array(
+		return $this->cachedRequest('statuses/' . $timelines[$flags & 3], array(
 			'count' => $count,
 			'page' => $page,
 			'include_rts' => $flags & self::RETWEETS ? 1 : 0,
