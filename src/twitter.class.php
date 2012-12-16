@@ -25,13 +25,6 @@ class Twitter
 	const RETWEETS = 128; // include retweets?
 	/**#@-*/
 
-	/**#@+ Output format {@link Twitter::load()} */
-	const XML = 0;
-	const JSON = 16;
-	const RSS = 32;
-	const ATOM = 48;
-	/**#@-*/
-
 	/** @var int */
 	public static $cacheExpire = 1800; // 30 min
 
@@ -111,7 +104,7 @@ class Twitter
 
 	/**
 	 * Returns the most recent statuses.
-	 * @param  int    timeline (ME | ME_AND_FRIENDS | REPLIES | ALL) and optional (RETWEETS) or format (XML | JSON | RSS | ATOM)
+	 * @param  int    timeline (ME | ME_AND_FRIENDS | REPLIES | ALL) and optional (RETWEETS)
 	 * @param  int    number of statuses to retrieve
 	 * @param  int    page of results to retrieve
 	 * @return mixed
@@ -128,7 +121,7 @@ class Twitter
 			throw new InvalidArgumentException;
 		}
 
-		return $this->cachedRequest('statuses/' . $timelines[$flags & 0x0F] . '.' . self::getFormat($flags), array(
+		return $this->cachedRequest('statuses/' . $timelines[$flags & 0x0F], array(
 			'count' => $count,
 			'page' => $page,
 			'include_rts' => $flags & self::RETWEETS ? 1 : 0,
@@ -140,13 +133,12 @@ class Twitter
 	/**
 	 * Returns information of a given user.
 	 * @param  string name
-	 * @param  int    format (XML | JSON)
 	 * @return mixed
 	 * @throws TwitterException
 	 */
-	public function loadUserInfo($user, $flags = self::XML)
+	public function loadUserInfo($user)
 	{
-		return $this->cachedRequest('users/show.' . self::getFormat($flags), array('screen_name' => $user));
+		return $this->cachedRequest('users/show', array('screen_name' => $user));
 	}
 
 
@@ -160,7 +152,7 @@ class Twitter
 	public function destroy($id)
 	{
 		$res = $this->request("statuses/destroy/$id");
-		return $res->id ? (string) $res->id : FALSE;
+		return $res->id ? $res->id : FALSE;
 	}
 
 
@@ -168,14 +160,13 @@ class Twitter
 	/**
 	 * Returns tweets that match a specified query.
 	 * @param  string|array   query
-	 * @param  int      format (JSON | ATOM)
 	 * @return mixed
 	 * @throws TwitterException
 	 */
-	public function search($query, $flags = self::JSON)
+	public function search($query)
 	{
 		return $this->request(
-			'/search/tweets.' . self::getFormat($flags),
+			'/search/tweets',
 			is_array($query) ? $query : array('q' => $query),
 			'GET'
 		)->statuses;
@@ -223,21 +214,15 @@ class Twitter
 			throw new TwitterException('Server error: ' . curl_error($curl));
 		}
 
-		$type = curl_getinfo($curl, CURLINFO_CONTENT_TYPE);
-		if (strpos($type, 'xml')) {
-			$payload = @simplexml_load_string($result); // intentionally @
+		$payload = @json_decode($result); // intentionally @
 
-		} elseif (strpos($type, 'json')) {
-			$payload = @json_decode($result); // intentionally @
-		}
-
-		if (empty($payload)) {
+		if ($payload === FALSE) {
 			throw new TwitterException('Invalid server response');
 		}
 
 		$code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 		if ($code >= 400) {
-			throw new TwitterException(isset($payload->error) ? $payload->error : "Server error #$code", $code);
+			throw new TwitterException(isset($payload->errors[0]->message) ? $payload->errors[0]->message : "Server error #$code", $code);
 		}
 
 		return $payload;
@@ -262,15 +247,14 @@ class Twitter
 		}
 
 		$cacheFile = self::$cacheDir . '/twitter.' . md5($request . json_encode($data) . serialize(array($this->consumer, $this->token)));
-		$cache = @file_get_contents($cacheFile); // intentionally @
-		$cache = strncmp($cache, '<', 1) ? @json_decode($cache) : @simplexml_load_string($cache); // intentionally @
+		$cache = @json_decode(@file_get_contents($cacheFile)); // intentionally @
 		if ($cache && @filemtime($cacheFile) + $cacheExpire > time()) { // intentionally @
 			return $cache;
 		}
 
 		try {
 			$payload = $this->request($request, $data, 'GET');
-			file_put_contents($cacheFile, $payload instanceof SimpleXMLElement ? $payload->asXml() : json_encode($payload));
+			file_put_contents($cacheFile, json_encode($payload));
 			return $payload;
 
 		} catch (TwitterException $e) {
@@ -334,19 +318,6 @@ class Twitter
 		$result = curl_exec($curl);
 		$code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 		return curl_errno($curl) || $code >= 400 ? $m[0] : $result;
-	}
-
-
-
-	private static function getFormat($flag)
-	{
-		static $formats = array(self::XML => 'xml', self::JSON => 'json', self::RSS => 'rss', self::ATOM => 'atom');
-		$flag = $flag & 0x30;
-		if (isset($formats[$flag])) {
-			return $formats[$flag];
-		} else {
-			throw new InvalidArgumentException('Invalid format');
-		}
 	}
 
 }
