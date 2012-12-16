@@ -72,16 +72,3 @@ The returned result is a PHP array:
 		echo "posted at " , $status->created_at;
 		echo "posted by " , $status->user->name;
 	}
-
-
-
-
-Files
------
-readme.txt           - This file.
-license.txt          - The license for this software (New BSD License).
-twitter.class.php    - The core Twitter class source.
-examples/send.php    - Example sending message to Twitter.
-examples/load.php    - Example loading statuses from Twitter.
-examples/search.php  - Example searching on Twitter.
-OAuth.php            - Andy Smith' OAuth library
