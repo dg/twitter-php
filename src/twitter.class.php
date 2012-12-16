@@ -200,7 +200,8 @@ class Twitter
 			throw new TwitterException('Server error: ' . curl_error($curl));
 		}
 
-		$payload = @json_decode($result); // intentionally @
+		$payload = version_compare(PHP_VERSION, '5.4.0') >= 0 ?
+			@json_decode($result, FALSE, 128, JSON_BIGINT_AS_STRING) : @json_decode($result); // intentionally @
 
 		if ($payload === FALSE) {
 			throw new TwitterException('Invalid server response');
