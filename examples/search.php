@@ -14,11 +14,11 @@ $results = $twitter->search('#nette');
 <title>Twitter search demo</title>
 
 <ul>
-<?php foreach ($results as $result): ?>
-	<li><a href="http://twitter.com/<?php echo $result->from_user ?>"><img src="<?php echo htmlspecialchars($result->profile_image_url) ?>" width="48">
-		<?php echo htmlspecialchars($result->from_user) ?></a>:
-		<?php echo Twitter::clickable($result->text) ?>
-		<small>at <?php echo date("j.n.Y H:i", strtotime($result->created_at)) ?></small>
+<?php foreach ($results as $status): ?>
+	<li><a href="http://twitter.com/<?php echo $status->user->screen_name ?>"><img src="<?php echo htmlspecialchars($status->user->profile_image_url) ?>">
+		<?php echo htmlspecialchars($status->user->name) ?></a>:
+		<?php echo Twitter::clickable($status->text) ?>
+		<small>at <?php echo date("j.n.Y H:i", strtotime($status->created_at)) ?></small>
 	</li>
 <?php endforeach ?>
 </ul>

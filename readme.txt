@@ -67,10 +67,10 @@ The search() method provides searching in twitter statuses:
 
 The returned result is a PHP array:
 
-	foreach ($results as $result) {
-		echo "message: ", $result->text;
-		echo "posted at " , $result->created_at;
-		echo "posted by " , $result->form_user;
+	foreach ($results as $status) {
+		echo "message: ", $status->text;
+		echo "posted at " , $status->created_at;
+		echo "posted by " , $status->user->name;
 	}
 
 
