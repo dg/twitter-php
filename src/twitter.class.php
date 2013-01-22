@@ -176,6 +176,10 @@ class Twitter
 			$resource = self::API_URL . $resource;
 		}
 
+		foreach (array_keys($data, NULL, TRUE) as $key) {
+			unset($data[$key]);
+		}
+
 		$request = Twitter_OAuthRequest::from_consumer_and_token($this->consumer, $this->token, $method, $resource, $data);
 		$request->sign_request($this->signatureMethod, $this->consumer, $this->token);
 
