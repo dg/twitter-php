@@ -264,31 +264,37 @@ class Twitter
 	 */
 	public static function clickable($status)
 	{
+		if (!is_object($status)) { // back compatibility
+			return preg_replace_callback(
+				'~(?<!\w)(https?://\S+\w|www\.\S+\w|@\w+|#\w+)|[<>&]~u',
+				array(__CLASS__, 'clickableCallback'),
+				html_entity_decode($status, ENT_QUOTES, 'UTF-8')
+			);
+		}
+
 		$all = array();
 		foreach ($status->entities->hashtags as $item) {
-			$all[$item->indices[0]] = array("<a href='http://twitter.com/search?q=%23$item->text'>#$item->text</a>", $item->indices[1]);
+			$all[$item->indices[0]] = array("http://twitter.com/search?q=%23$item->text", "#$item->text", $item->indices[1]);
 		}
 		foreach ($status->entities->urls as $item) {
 			if (!isset($item->expanded_url)) {
-				$item->expanded_url = $item->display_url = $item->url;
+				$all[$item->indices[0]] = array($item->url, $item->url, $item->indices[1]);
+			} else {
+				$all[$item->indices[0]] = array($item->expanded_url, $item->display_url, $item->indices[1]);
 			}
-			$all[$item->indices[0]] = array("<a href='$item->expanded_url'>$item->display_url</a>", $item->indices[1]);
 		}
 		foreach ($status->entities->user_mentions as $item) {
-			$all[$item->indices[0]] = array("<a href='http://twitter.com/$item->screen_name'>@$item->screen_name</a>", $item->indices[1]);
+			$all[$item->indices[0]] = array("http://twitter.com/$item->screen_name", "@$item->screen_name", $item->indices[1]);
 		}
+
 		krsort($all);
 		$s = $status->text;
 		foreach ($all as $pos => $item) {
-			$s = iconv_substr($s, 0, $pos, 'UTF-8') . $item[0] . iconv_substr($s, $item[2], iconv_strlen($s, 'UTF-8'), 'UTF-8');
+			$s = iconv_substr($s, 0, $pos, 'UTF-8')
+				. '<a href="' . htmlspecialchars($item[0]) . '">' . htmlspecialchars($item[1]) . '</a>'
+				. iconv_substr($s, $item[2], iconv_strlen($s, 'UTF-8'), 'UTF-8');
 		}
 		return $s;
-
-		return preg_replace_callback(
-			'~(?<!\w)(https?://\S+\w|www\.\S+\w|@\w+|#\w+)|[<>&]~u',
-			array(__CLASS__, 'clickableCallback'),
-			html_entity_decode($s, ENT_QUOTES, 'UTF-8')
-		);
 	}
 
 
