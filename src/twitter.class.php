@@ -259,11 +259,31 @@ class Twitter
 
 	/**
 	 * Makes twitter links, @usernames and #hashtags clickable.
-	 * @param  string
+	 * @param  stdClass|string status
 	 * @return string
 	 */
-	public static function clickable($s)
+	public static function clickable($status)
 	{
+		$all = array();
+		foreach ($status->entities->hashtags as $item) {
+			$all[$item->indices[0]] = array("<a href='http://twitter.com/search?q=%23$item->text'>#$item->text</a>", $item->indices[1]);
+		}
+		foreach ($status->entities->urls as $item) {
+			if (!isset($item->expanded_url)) {
+				$item->expanded_url = $item->display_url = $item->url;
+			}
+			$all[$item->indices[0]] = array("<a href='$item->expanded_url'>$item->display_url</a>", $item->indices[1]);
+		}
+		foreach ($status->entities->user_mentions as $item) {
+			$all[$item->indices[0]] = array("<a href='http://twitter.com/$item->screen_name'>@$item->screen_name</a>", $item->indices[1]);
+		}
+		krsort($all);
+		$s = $status->text;
+		foreach ($all as $pos => $item) {
+			$s = iconv_substr($s, 0, $pos, 'UTF-8') . $item[0] . iconv_substr($s, $item[2], iconv_strlen($s, 'UTF-8'), 'UTF-8');
+		}
+		return $s;
+
 		return preg_replace_callback(
 			'~(?<!\w)(https?://\S+\w|www\.\S+\w|@\w+|#\w+)|[<>&]~u',
 			array(__CLASS__, 'clickableCallback'),
