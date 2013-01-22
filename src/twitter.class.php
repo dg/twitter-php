@@ -104,16 +104,15 @@ class Twitter
 	 * @return mixed
 	 * @throws TwitterException
 	 */
-	public function load($flags = self::ME, $count = 20, $page = 1)
+	public function load($flags = self::ME, $count = 20, array $data = NULL)
 	{
 		static $timelines = array(self::ME => 'user_timeline', self::ME_AND_FRIENDS => 'home_timeline', self::REPLIES => 'mentions_timeline');
 		if (!isset($timelines[$flags & 3])) {
 			throw new InvalidArgumentException;
 		}
 
-		return $this->cachedRequest('statuses/' . $timelines[$flags & 3], array(
+		return $this->cachedRequest('statuses/' . $timelines[$flags & 3], (array) $data + array(
 			'count' => $count,
-			'page' => $page,
 			'include_rts' => $flags & self::RETWEETS ? 1 : 0,
 		));
 	}
