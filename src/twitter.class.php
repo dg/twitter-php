@@ -30,6 +30,12 @@ class Twitter
 	/** @var string */
 	public static $cacheDir;
 
+    /**
+     * proxy server for requests, if needed
+     *
+     * @var string */
+    public static $proxy;
+
 	/** @var Twitter_OAuthSignatureMethod */
 	private $signatureMethod;
 
@@ -190,6 +196,9 @@ class Twitter
 		curl_setopt($curl, CURLOPT_HTTPHEADER, array('Expect:'));
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE); // no echo, just return result
 		curl_setopt($curl, CURLOPT_USERAGENT, 'Twitter for PHP');
+        if (self::$proxy != '') {
+            curl_setopt($curl, CURLOPT_PROXY, self::$proxy);
+        }
 		if ($method === 'POST') {
 			curl_setopt($curl, CURLOPT_POST, TRUE);
 			curl_setopt($curl, CURLOPT_POSTFIELDS, $request->to_postdata());
