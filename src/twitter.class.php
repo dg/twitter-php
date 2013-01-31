@@ -167,7 +167,7 @@ class Twitter
 	 * @return mixed
 	 * @throws TwitterException
 	 */
-	public function request($resource, $method, array $data = NULL)
+	public function request($resource, $method, array $data = array())
 	{
 		if (!strpos($resource, '://')) {
 			if (!strpos($resource, '.')) {
