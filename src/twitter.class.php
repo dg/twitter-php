@@ -176,7 +176,7 @@ class Twitter
 			$resource = self::API_URL . $resource;
 		}
 
-		foreach (array_keys($data, NULL, TRUE) as $key) {
+		foreach (array_keys((array) $data, NULL, TRUE) as $key) {
 			unset($data[$key]);
 		}
 
