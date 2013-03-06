@@ -30,6 +30,14 @@ class Twitter
 	/** @var string */
 	public static $cacheDir;
 
+	/** @var array */
+	public $httpOptions = array(
+		CURLOPT_TIMEOUT => 20,
+		CURLOPT_SSL_VERIFYPEER => 0,
+		CURLOPT_HTTPHEADER => array('Expect:'),
+		CURLOPT_USERAGENT => 'Twitter for PHP',
+	);
+
 	/** @var Twitter_OAuthSignatureMethod */
 	private $signatureMethod;
 
@@ -183,21 +191,19 @@ class Twitter
 		$request = Twitter_OAuthRequest::from_consumer_and_token($this->consumer, $this->token, $method, $resource, $data);
 		$request->sign_request($this->signatureMethod, $this->consumer, $this->token);
 
-		$curl = curl_init();
-		curl_setopt($curl, CURLOPT_HEADER, FALSE);
-		curl_setopt($curl, CURLOPT_TIMEOUT, 20);
-		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-		curl_setopt($curl, CURLOPT_HTTPHEADER, array('Expect:'));
-		curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE); // no echo, just return result
-		curl_setopt($curl, CURLOPT_USERAGENT, 'Twitter for PHP');
-		if ($method === 'POST') {
-			curl_setopt($curl, CURLOPT_POST, TRUE);
-			curl_setopt($curl, CURLOPT_POSTFIELDS, $request->to_postdata());
-			curl_setopt($curl, CURLOPT_URL, $request->get_normalized_http_url());
-		} else {
-			curl_setopt($curl, CURLOPT_URL, $request->to_url());
-		}
+		$options = array(
+			CURLOPT_HEADER => FALSE,
+			CURLOPT_RETURNTRANSFER => TRUE,
+		) + ($method === 'POST' ? array(
+			CURLOPT_POST => TRUE,
+			CURLOPT_POSTFIELDS => $request->to_postdata(),
+			CURLOPT_URL => $request->get_normalized_http_url(),
+		) : array(
+			CURLOPT_URL => $request->to_url(),
+		)) + $this->httpOptions;
 
+		$curl = curl_init();
+		curl_setopt_array($curl, $options);
 		$result = curl_exec($curl);
 		if (curl_errno($curl)) {
 			throw new TwitterException('Server error: ' . curl_error($curl));
