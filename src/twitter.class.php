@@ -271,6 +271,7 @@ class Twitter
 	public static function clickable($status)
 	{
 		if (!is_object($status)) { // back compatibility
+			trigger_error(__METHOD__ . '() has been changed; pass as parameter status object, not just text.', E_USER_WARNING);
 			return preg_replace_callback(
 				'~(?<!\w)(https?://\S+\w|www\.\S+\w|@\w+|#\w+)|[<>&]~u',
 				array(__CLASS__, 'clickableCallback'),
