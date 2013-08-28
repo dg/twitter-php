@@ -51,10 +51,12 @@ class Twitter
 
 	/**
 	 * Creates object using consumer and access keys.
-	 * @param  string  consumer key
-	 * @param  string  app secret
-	 * @param  string  optional access token
-	 * @param  string  optinal access token secret
+     *
+	 * @param  string  $consumerKey consumer key
+	 * @param  string  $consumerSecret app secret
+	 * @param  string  $accessToken optional access token
+	 * @param  string  $accessTokenSecret optinal access token secret
+     *
 	 * @throws TwitterException when CURL extension is not loaded
 	 */
 	public function __construct($consumerKey, $consumerSecret, $accessToken = NULL, $accessTokenSecret = NULL)
@@ -72,6 +74,7 @@ class Twitter
 
 	/**
 	 * Tests if user credentials are valid.
+     *
 	 * @return boolean
 	 * @throws TwitterException
 	 */
@@ -93,7 +96,8 @@ class Twitter
 
 	/**
 	 * Sends message to the Twitter.
-	 * @param string   message encoded in UTF-8
+     *
+	 * @param string   $message message encoded in UTF-8
 	 * @return object
 	 * @throws TwitterException
 	 */
@@ -106,11 +110,12 @@ class Twitter
 
 	/**
 	 * Returns the most recent statuses.
-	 * @param  int    timeline (ME | ME_AND_FRIENDS | REPLIES) and optional (RETWEETS)
-	 * @param  int    number of statuses to retrieve
-	 * @param  int    page of results to retrieve
+     *
+	 * @param  int    $flags timeline (ME | ME_AND_FRIENDS | REPLIES) and optional (RETWEETS)
+	 * @param  int    $count number of statuses to retrieve
+	 * @param  array  $data page of results to retrieve
 	 * @return mixed
-	 * @throws TwitterException
+	 * @throws InvalidArgumentException
 	 */
 	public function load($flags = self::ME, $count = 20, array $data = NULL)
 	{
@@ -129,7 +134,8 @@ class Twitter
 
 	/**
 	 * Returns information of a given user.
-	 * @param  string name
+     *
+	 * @param  $user string name
 	 * @return mixed
 	 * @throws TwitterException
 	 */
@@ -142,7 +148,8 @@ class Twitter
 
 	/**
 	 * Returns information of a given user by id.
-	 * @param  string name
+     *
+	 * @param  string $id name
 	 * @return mixed
 	 * @throws TwitterException
 	 */
@@ -152,13 +159,15 @@ class Twitter
 	}
 
 
-
-	/**
-	 * Returns followers of a given user.
-	 * @param  string name
-	 * @return mixed
-	 * @throws TwitterException
-	 */
+    /**
+     * Returns followers of a given user.
+     *
+     * @param  string $user name
+     * @param  int $count
+     * @param  int $cursor
+     * @param  int $cacheExpiry
+     * @return mixed
+     */
 	public function loadUserFollowers($user, $count = 5000, $cursor = -1, $cacheExpiry = null)
 	{
 		return $this->cachedRequest('followers/ids', array('screen_name' => $user, 'count' => $count, 'cursor' => $cursor), $cacheExpiry);
@@ -168,7 +177,8 @@ class Twitter
 
 	/**
 	 * Destroys status.
-	 * @param  int    id of status to be destroyed
+     *
+	 * @param  int $id  id of status to be destroyed
 	 * @return mixed
 	 * @throws TwitterException
 	 */
@@ -182,7 +192,8 @@ class Twitter
 
 	/**
 	 * Returns tweets that match a specified query.
-	 * @param  string|array   query
+     *
+	 * @param  string|array query
 	 * @return mixed
 	 * @throws TwitterException
 	 */
@@ -195,9 +206,10 @@ class Twitter
 
 	/**
 	 * Process HTTP request.
-	 * @param  string  URL or twitter command
-	 * @param  string  HTTP method GET or POST
-	 * @param  array   data
+     *
+	 * @param  string $resource URL or twitter command
+	 * @param  string $method HTTP method GET or POST
+	 * @param  array  $data data
 	 * @return mixed
 	 * @throws TwitterException
 	 */
@@ -251,14 +263,15 @@ class Twitter
 	}
 
 
-
-	/**
-	 * Cached HTTP request.
-	 * @param  string  URL or twitter command
-	 * @param  array
-	 * @param  int
-	 * @return mixed
-	 */
+    /**
+     * Cached HTTP request.
+     *
+     * @param  string $resource URL or twitter command
+     * @param  array $data
+     * @param  int $cacheExpire
+     * @throws Exception|TwitterException
+     * @return mixed
+     */
 	public function cachedRequest($resource, array $data = NULL, $cacheExpire = NULL)
 	{
 		if (!self::$cacheDir) {
@@ -291,6 +304,7 @@ class Twitter
 
 	/**
 	 * Makes twitter links, @usernames and #hashtags clickable.
+     *
 	 * @param  stdClass|string status
 	 * @return string
 	 */
