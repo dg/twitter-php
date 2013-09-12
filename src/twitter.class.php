@@ -319,6 +319,11 @@ class Twitter
 		foreach ($status->entities->user_mentions as $item) {
 			$all[$item->indices[0]] = array("http://twitter.com/$item->screen_name", "@$item->screen_name", $item->indices[1]);
 		}
+		if (isset($status->entities->media)){
+			foreach ($status->entities->media as $item) {
+				$all[$item->indices[0]] = array($item->url, $item->display_url, $item->indices[1]);
+			}
+		}
 
 		krsort($all);
 		$s = $status->text;
