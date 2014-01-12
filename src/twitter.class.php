@@ -256,7 +256,7 @@ class Twitter
 
 			case 'url':
 				$payload = array();
-				foreach (explode('&', $query) as $value) {
+				foreach (explode('&', $result) as $value) {
 					$param = explode("=", $value);
 					$payload[$param[0]] = $param[1];
 				}
