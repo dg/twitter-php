@@ -68,7 +68,15 @@ class Twitter
 		$this->token = new Twitter_OAuthConsumer($accessToken, $accessTokenSecret);
 	}
 
-
+	/**
+	 * Changes OAuth user
+	 * @param  string  access token
+	 * @param  string  access token secret
+	 **/
+	public function setUser($accessToken, $accessTokenSecret)
+	{
+		$this->token = new Twitter_OAuthConsumer($accessToken, $accessTokenSecret);
+	}
 
 	/**
 	 * Tests if user credentials are valid.
