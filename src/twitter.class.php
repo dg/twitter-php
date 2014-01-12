@@ -206,10 +206,11 @@ class Twitter
 	 * @param  string  URL or twitter command
 	 * @param  string  HTTP method GET or POST
 	 * @param  array   data
+	 * @param  string  response encoding (json, url, raw)
 	 * @return mixed
 	 * @throws TwitterException
 	 */
-	public function request($resource, $method, array $data = NULL)
+	public function request($resource, $method, array $data = NULL, $encoding = 'json')
 	{
 		if (!strpos($resource, '://')) {
 			if (!strpos($resource, '.')) {
@@ -243,8 +244,31 @@ class Twitter
 			throw new TwitterException('Server error: ' . curl_error($curl));
 		}
 
-		$payload = version_compare(PHP_VERSION, '5.4.0') >= 0 ?
-			@json_decode($result, FALSE, 128, JSON_BIGINT_AS_STRING) : @json_decode($result); // intentionally @
+		switch ($encoding) {
+			case 'json':
+				$payload = version_compare(PHP_VERSION, '5.4.0') >= 0 ?
+					@json_decode($result, FALSE, 128, JSON_BIGINT_AS_STRING) : @json_decode($result); // intentionally @
+				break;
+			
+			case 'raw':
+				$payload = $result;
+				break;
+
+			case 'url':
+				$payload = array();
+				foreach (explode('&', $query) as $value) {
+					$param = explode("=", $value);
+					$payload[$param[0]] = $param[1];
+				}
+				break;
+
+			default:
+				throw new TwitterException("Undefined response `$encoding`");
+				break;
+		}
+
+
+
 
 		if ($payload === FALSE) {
 			throw new TwitterException('Invalid server response');
