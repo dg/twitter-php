@@ -4,13 +4,11 @@
 Twitter for PHP is a very small and easy-to-use library for sending
 messages to Twitter and receiving status updates.
 
-    Note: Twitter announced deprecation of API 1.0 since March 2013. Update to the last version of this library.
+It requires PHP 5.0 or newer with CURL extension and is licensed under the New BSD License.
+You can obtain the latest version from our [GitHub repository](http://github.com/dg/twitter-php)
+or install it via Composer:
 
-
-Requirements
-------------
-- PHP (version 5 or better)
-- cURL extension
+	php composer.phar require dg/twitter-php
 
 
 Usage
@@ -43,10 +41,12 @@ or most recent mentions for you:
 Extracting the information from the channel is easy:
 
 	foreach ($statuses as $status) {
-		echo "message: ", $status->text;
+		echo "message: ", Twitter::clickable($status);
 		echo "posted at " , $status->created_at;
 		echo "posted by " , $status->user->name;
 	}
+
+The static method `Twitter::clickable()` makes links, mentions and hash tags in status clickable.
 
 The authenticate() method tests if user credentials are valid:
 
@@ -58,13 +58,39 @@ The search() method provides searching in twitter statuses:
 
 	$results = $twitter->search('#nette');
 
-The returned result is a PHP array:
+The returned result is a again array of statuses.
 
-	foreach ($results as $status) {
-		echo "message: ", $status->text;
-		echo "posted at " , $status->created_at;
-		echo "posted by " , $status->user->name;
+
+Error handling
+--------------
+
+All methods throw a TwitterException on error:
+
+	try {
+		$statuses = $twitter->load(Twitter::ME);
+	} catch (TwitterException $e) {
+		echo "Error: ", $e->getMessage();
 	}
+
+
+Additional features
+-------------------
+
+The `authenticate()` method tests if user credentials are valid:
+
+	if (!$twitter->authenticate()) {
+		die('Invalid name or password');
+	}
+
+
+Other commands
+--------------
+
+You can use all commands defined by [Twitter API 1.1](https://dev.twitter.com/docs/api/1.1).
+For example [GET statuses/retweets_of_me](https://dev.twitter.com/docs/api/1.1/get/statuses/retweets_of_me)
+returns the array of most recent tweets authored by the authenticating user:
+
+	$statuses = $twitter->request('statuses/retweets_of_me', 'GET', array('count' => 20));
 
 
 Changelog
@@ -93,7 +119,4 @@ v1.0 (7/2008)
 
 
 -----
-Project at GitHub: http://github.com/dg/twitter-php
-Twitter's API documentation: http://dev.twitter.com/doc
-
-(c) David Grudl, 2008, 2013 (http://davidgrudl.com)
+(c) David Grudl, 2008, 2014 (http://davidgrudl.com)

@@ -42,6 +42,7 @@ class Twitter_OAuthConsumer
 		$this->callback_url = $callback_url;
 	}
 
+
 	function __toString() {
 		return "OAuthConsumer[key=$this->key,secret=$this->secret]";
 	}
@@ -62,6 +63,7 @@ class Twitter_OAuthToken
 		$this->secret = $secret;
 	}
 
+
 	/**
 	 * generates the basic string serialization of a token that a server
 	 * would respond to request_token and access_token calls with
@@ -72,6 +74,7 @@ class Twitter_OAuthToken
 					"&oauth_token_secret=" .
 					Twitter_OAuthUtil::urlencode_rfc3986($this->secret);
 	}
+
 
 	function __toString() {
 		return $this->to_string();
@@ -129,6 +132,7 @@ class Twitter_OAuthSignatureMethod_HMAC_SHA1 extends Twitter_OAuthSignatureMetho
 		return "HMAC-SHA1";
 	}
 
+
 	public function build_signature($request, $consumer, $token) {
 		$base_string = $request->get_signature_base_string();
 		$request->base_string = $base_string;
@@ -155,6 +159,7 @@ class Twitter_OAuthSignatureMethod_PLAINTEXT extends Twitter_OAuthSignatureMetho
 	public function get_name() {
 		return "PLAINTEXT";
 	}
+
 
 	/**
 	 * oauth_signature is set to the concatenated encoded values of the Consumer Secret and
@@ -225,6 +230,7 @@ abstract class Twitter_OAuthSignatureMethod_RSA_SHA1 extends Twitter_OAuthSignat
 
 		return base64_encode($signature);
 	}
+
 
 	public function check_signature($request, $consumer, $token, $signature) {
 		$decoded_sig = base64_decode($signature);
@@ -318,6 +324,7 @@ class Twitter_OAuthRequest
 		return new Twitter_OAuthRequest($http_method, $http_url, $parameters);
 	}
 
+
 	/**
 	 * pretty much a helper function to set up the request
 	 */
@@ -335,6 +342,7 @@ class Twitter_OAuthRequest
 		return new Twitter_OAuthRequest($http_method, $http_url, $parameters);
 	}
 
+
 	public function set_parameter($name, $value, $allow_duplicates = true) {
 		if ($allow_duplicates && isset($this->parameters[$name])) {
 			// We have already added parameter(s) with this name, so add to the list
@@ -350,17 +358,21 @@ class Twitter_OAuthRequest
 		}
 	}
 
+
 	public function get_parameter($name) {
 		return isset($this->parameters[$name]) ? $this->parameters[$name] : null;
 	}
+
 
 	public function get_parameters() {
 		return $this->parameters;
 	}
 
+
 	public function unset_parameter($name) {
 		unset($this->parameters[$name]);
 	}
+
 
 	/**
 	 * The request parameters, sorted and concatenated into a normalized string.
@@ -378,6 +390,7 @@ class Twitter_OAuthRequest
 
 		return Twitter_OAuthUtil::build_http_query($params);
 	}
+
 
 	/**
 	 * Returns the base string of this request
@@ -398,12 +411,14 @@ class Twitter_OAuthRequest
 		return implode('&', $parts);
 	}
 
+
 	/**
 	 * just uppercases the http method
 	 */
 	public function get_normalized_http_method() {
 		return strtoupper($this->http_method);
 	}
+
 
 	/**
 	 * parses the url and rebuilds it to be
@@ -424,6 +439,7 @@ class Twitter_OAuthRequest
 		return "$scheme://$host$path";
 	}
 
+
 	/**
 	 * builds a url usable for a GET request
 	 */
@@ -436,12 +452,14 @@ class Twitter_OAuthRequest
 		return $out;
 	}
 
+
 	/**
 	 * builds the data one would send in a POST request
 	 */
 	public function to_postdata() {
 		return Twitter_OAuthUtil::build_http_query($this->parameters);
 	}
+
 
 	/**
 	 * builds the Authorization: header
@@ -470,6 +488,7 @@ class Twitter_OAuthRequest
 		return $out;
 	}
 
+
 	public function __toString() {
 		return $this->to_url();
 	}
@@ -485,10 +504,12 @@ class Twitter_OAuthRequest
 		$this->set_parameter("oauth_signature", $signature, false);
 	}
 
+
 	public function build_signature($signature_method, $consumer, $token) {
 		$signature = $signature_method->build_signature($this, $consumer, $token);
 		return $signature;
 	}
+
 
 	/**
 	 * util function: current timestamp
@@ -496,6 +517,7 @@ class Twitter_OAuthRequest
 	private static function generate_timestamp() {
 		return time();
 	}
+
 
 	/**
 	 * util function: current nonce
@@ -519,6 +541,7 @@ class Twitter_OAuthServer
 	function __construct($data_store) {
 		$this->data_store = $data_store;
 	}
+
 
 	public function add_signature_method($signature_method) {
 		$this->signature_methods[$signature_method->get_name()] =
@@ -548,6 +571,7 @@ class Twitter_OAuthServer
 		return $new_token;
 	}
 
+
 	/**
 	 * process an access_token request
 	 * returns the access token on success
@@ -568,6 +592,7 @@ class Twitter_OAuthServer
 
 		return $new_token;
 	}
+
 
 	/**
 	 * verify an api call, checks all the parameters
@@ -597,6 +622,7 @@ class Twitter_OAuthServer
 		return $version;
 	}
 
+
 	/**
 	 * figure out the signature with some defaults
 	 */
@@ -622,6 +648,7 @@ class Twitter_OAuthServer
 		return $this->signature_methods[$signature_method];
 	}
 
+
 	/**
 	 * try to find the consumer for the provided request's consumer key
 	 */
@@ -642,6 +669,7 @@ class Twitter_OAuthServer
 		return $consumer;
 	}
 
+
 	/**
 	 * try to find the token for the provided request's token key
 	 */
@@ -658,6 +686,7 @@ class Twitter_OAuthServer
 		}
 		return $token;
 	}
+
 
 	/**
 	 * all-in-one function to check the signature on a request
@@ -690,6 +719,7 @@ class Twitter_OAuthServer
 		}
 	}
 
+
 	/**
 	 * check that the timestamp is new enough
 	 */
@@ -707,6 +737,7 @@ class Twitter_OAuthServer
 			);
 		}
 	}
+
 
 	/**
 	 * check that the nonce is not repeated
@@ -737,17 +768,21 @@ class Twitter_OAuthDataStore
 		// implement me
 	}
 
+
 	function lookup_token($consumer, $token_type, $token) {
 		// implement me
 	}
+
 
 	function lookup_nonce($consumer, $token, $nonce, $timestamp) {
 		// implement me
 	}
 
+
 	function new_request_token($consumer, $callback = null) {
 		// return a new token attached to this consumer
 	}
+
 
 	function new_access_token($token, $consumer, $verifier = null) {
 		// return a new access token attached to this consumer
@@ -877,6 +912,7 @@ class Twitter_OAuthUtil
 		}
 		return $parsed_parameters;
 	}
+
 
 	public static function build_http_query($params) {
 		if (!$params) return '';
