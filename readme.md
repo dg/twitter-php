@@ -95,6 +95,12 @@ returns the array of most recent tweets authored by the authenticating user:
 
 Changelog
 ---------
+v3.2 (1/2014)
+- Twitter API uses SSL OAuth
+- Twitter::clickable() supports media
+- added Twitter::loadUserInfoById() and loadUserFollowers()
+- fixed Twitter::destroy()
+
 v3.1 (3/2013)
 - Twitter::load() - added third argument $data
 - Twitter::clickable() uses entities; pass as parameter status object, not just text
