@@ -107,6 +107,18 @@ class Twitter
 
 
 	/**
+	 * Follows a user on Twitter.
+	 * @param  string  user name
+	 * @return object
+	 * @throws TwitterException
+	 */
+	public function follow($username)
+	{
+		return $this->request('friendships/create', 'POST', array('screen_name' => $username));
+	}
+
+
+	/**
 	 * Returns the most recent statuses.
 	 * @param  int    timeline (ME | ME_AND_FRIENDS | REPLIES) and optional (RETWEETS)
 	 * @param  int    number of statuses to retrieve
