@@ -100,6 +100,15 @@ class Twitter
 		return $this->request('statuses/update', 'POST', array('status' => $message));
 	}
 
+	/**
+	 * Follows a user on Twitter.
+	 * @param username   Twitter screen name encoded in UTF-8
+	 * @return object
+	 * @throws TwitterException
+	 */
+	public function follow($username){
+		return $this->request('friendships/create', 'POST', array('screen_name' => $username));
+	}
 
 	/**
 	 * Returns the most recent statuses.
