@@ -15,7 +15,7 @@ require_once dirname(__FILE__) . '/OAuth.php';
  */
 class Twitter
 {
-	const API_URL = 'http://api.twitter.com/1.1/';
+	const API_URL = 'https://api.twitter.com/1.1/';
 
 	/**#@+ Timeline {@link Twitter::load()} */
 	const ME = 1;
