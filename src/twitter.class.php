@@ -258,6 +258,7 @@ class Twitter
 				$payload = array();
 				foreach (explode('&', $result) as $value) {
 					$param = explode("=", $value);
+					if(count($param) <= 1) break;
 					$payload[$param[0]] = $param[1];
 				}
 				break;
