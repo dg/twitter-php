@@ -277,7 +277,7 @@ class Twitter
 
 		$code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 		if ($code >= 400) {
-			throw new TwitterException(isset($payload->errors[0]->message) ? $payload->errors[0]->message : "Server error #$code", $code);
+			throw new TwitterException(isset($payload->errors[0]->message) ? $payload->errors[0]->message : "Server error #$code with answer ".$result, $code);
 		}
 
 		return $payload;
