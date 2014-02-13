@@ -282,7 +282,7 @@ class Twitter
 		if ($code >= 400) {
 			throw new TwitterException(isset($payload->errors[0]->message)
 				? $payload->errors[0]->message
-				: "Server error #$code",
+				: "Server error #$code with answer $result",
 				$code
 			);
 		}
