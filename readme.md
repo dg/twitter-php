@@ -95,6 +95,10 @@ returns the array of most recent tweets authored by the authenticating user:
 
 Changelog
 ---------
+v3.3 (3/2014)
+- Twitter::send($status, $image) can upload image
+- added Twitter::follow()
+
 v3.2 (1/2014)
 - Twitter API uses SSL OAuth
 - Twitter::clickable() supports media
