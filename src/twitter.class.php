@@ -180,12 +180,14 @@ class Twitter
 	/**
 	 * Returns tweets that match a specified query.
 	 * @param  string|array   query
+	 * @param  bool  return complete response?
 	 * @return mixed
 	 * @throws TwitterException
 	 */
-	public function search($query)
+	public function search($query, $full = FALSE)
 	{
-		return $this->request('search/tweets', 'GET', is_array($query) ? $query : array('q' => $query))->statuses;
+		$res = $this->request('search/tweets', 'GET', is_array($query) ? $query : array('q' => $query));
+		return $full ? $res : $res->statuses;
 	}
 
 
