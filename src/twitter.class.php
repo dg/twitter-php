@@ -95,9 +95,14 @@ class Twitter
 	 * @return object
 	 * @throws TwitterException
 	 */
-	public function send($message)
+	public function send($message, $media = NULL)
 	{
-		return $this->request('statuses/update', 'POST', array('status' => $message));
+		return $this->request(
+			$media ? 'statuses/update_with_media' : 'statuses/update',
+			'POST',
+			array('status' => $message),
+			$media ? array('media[]' => $media) : NULL
+		);
 	}
 
 
@@ -189,10 +194,11 @@ class Twitter
 	 * @param  string  URL or twitter command
 	 * @param  string  HTTP method GET or POST
 	 * @param  array   data
+	 * @param  array   uploaded files
 	 * @return mixed
 	 * @throws TwitterException
 	 */
-	public function request($resource, $method, array $data = NULL)
+	public function request($resource, $method, array $data = NULL, array $files = NULL)
 	{
 		if (!strpos($resource, '://')) {
 			if (!strpos($resource, '.')) {
@@ -205,7 +211,11 @@ class Twitter
 			unset($data[$key]);
 		}
 
-		$request = Twitter_OAuthRequest::from_consumer_and_token($this->consumer, $this->token, $method, $resource, $data);
+		foreach ((array) $files as $key => $file) {
+			$data[$key] = '@' . $file;
+		}
+
+		$request = Twitter_OAuthRequest::from_consumer_and_token($this->consumer, $this->token, $method, $resource, $files ? array() : $data);
 		$request->sign_request($this->signatureMethod, $this->consumer, $this->token);
 
 		$options = array(
@@ -213,8 +223,8 @@ class Twitter
 			CURLOPT_RETURNTRANSFER => TRUE,
 		) + ($method === 'POST' ? array(
 			CURLOPT_POST => TRUE,
-			CURLOPT_POSTFIELDS => $request->to_postdata(),
-			CURLOPT_URL => $request->get_normalized_http_url(),
+			CURLOPT_POSTFIELDS => $files ? $data : $request->to_postdata(),
+			CURLOPT_URL => $files ? $request->to_url() : $request->get_normalized_http_url(),
 		) : array(
 			CURLOPT_URL => $request->to_url(),
 		)) + $this->httpOptions;
