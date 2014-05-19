@@ -226,6 +226,9 @@ class Twitter
 		}
 
 		foreach ((array) $files as $key => $file) {
+			if (!is_file($file)) {
+				throw new TwitterException("Cannot read the file $file. Check if file exists on disk and check its permissions.");
+			}
 			$data[$key] = '@' . $file;
 		}
 
