@@ -285,7 +285,7 @@ class Twitter
 			$cacheExpire = self::$cacheExpire;
 		}
 
-		$cacheFile = self::$cacheDir . '/twitter.' . md5($resource . json_encode($data) . serialize(array($this->consumer, $this->token)));
+		$cacheFile = self::$cacheDir . '/twitter.' . md5($resource . json_encode($data) . serialize(array($this->consumer, $this->token))) . '.json';
 		$cache = @json_decode(@file_get_contents($cacheFile)); // intentionally @
 		if ($cache && @filemtime($cacheFile) + $cacheExpire > time()) { // intentionally @
 			return $cache;
