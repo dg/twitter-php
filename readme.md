@@ -1,6 +1,8 @@
 [Twitter for PHP](http://phpfashion.com/twitter-for-php)
 ================================
 
+[![Downloads this Month](https://img.shields.io/packagist/dm/dg/twitter-php.svg)](https://packagist.org/packages/dg/twitter-php)
+
 Twitter for PHP is a very small and easy-to-use library for sending
 messages to Twitter and receiving status updates.
 

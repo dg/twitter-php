@@ -1,9 +1,9 @@
 {
 	"name": "dg/twitter-php",
-	"description": "Small and easy Twitter wrapper for PHP.",
+	"description": "Small and easy Twitter library for PHP",
 	"keywords": ["twitter", "oauth"],
 	"homepage": "https://github.com/dg/twitter-php",
-	"license": ["BSD-3"],
+	"license": ["BSD-3-Clause"],
 	"authors": [
 		{
 			"name": "David Grudl",
