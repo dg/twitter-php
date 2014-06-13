@@ -1,4 +1,4 @@
-[Twitter for PHP](http://phpfashion.com/twitter-for-php)
+[Twitter for PHP](http://phpfashion.com/twitter-for-php)  [![Buy me a coffee](http://files.nette.org/images/coffee1s.png)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=QLFKBFDU6C94L)
 ================================
 
 [![Downloads this Month](https://img.shields.io/packagist/dm/dg/twitter-php.svg)](https://packagist.org/packages/dg/twitter-php)
