@@ -253,7 +253,7 @@ class Twitter
 			throw new TwitterException('Server error: ' . curl_error($curl));
 		}
 
-		$payload = version_compare(PHP_VERSION, '5.4.0') >= 0 ?
+		$payload = (version_compare(PHP_VERSION, '5.4.0') >= 0 && defined('JSON_BIGINT_AS_STING')) ?
 			@json_decode($result, FALSE, 128, JSON_BIGINT_AS_STRING) : @json_decode($result); // intentionally @
 
 		if ($payload === FALSE) {
