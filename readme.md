@@ -10,12 +10,12 @@ It requires PHP 5.0 or newer with CURL extension and is licensed under the New B
 You can obtain the latest version from our [GitHub repository](http://github.com/dg/twitter-php)
 or install it via Composer:
 
-	php composer.phar require dg/twitter-php
+	composer require dg/twitter-php
 
 
 Usage
 -----
-Sign in to the http://twitter.com and register an application from the http://dev.twitter.com/apps page. Remember
+Sign in to the http://twitter.com and register an application from the https://apps.twitter.com page. Remember
 to never reveal your consumer secrets. Click on My Access Token link from the sidebar and retrieve your own access
 token. Now you have consumer key, consumer secret, access token and access token secret.
 
@@ -88,8 +88,8 @@ The `authenticate()` method tests if user credentials are valid:
 Other commands
 --------------
 
-You can use all commands defined by [Twitter API 1.1](https://dev.twitter.com/docs/api/1.1).
-For example [GET statuses/retweets_of_me](https://dev.twitter.com/docs/api/1.1/get/statuses/retweets_of_me)
+You can use all commands defined by [Twitter API 1.1](https://dev.twitter.com/rest/public).
+For example [GET statuses/retweets_of_me](https://dev.twitter.com/rest/reference/get/statuses/retweets_of_me)
 returns the array of most recent tweets authored by the authenticating user:
 
 	$statuses = $twitter->request('statuses/retweets_of_me', 'GET', array('count' => 20));
