@@ -25,7 +25,7 @@ class Twitter
 	/**#@-*/
 
 	/** @var int */
-	public static $cacheExpire = 1800; // 30 min
+	public static $cacheExpire = '30 minutes';
 
 	/** @var string */
 	public static $cacheDir;
@@ -304,7 +304,8 @@ class Twitter
 			. '.json';
 
 		$cache = @json_decode(@file_get_contents($cacheFile)); // intentionally @
-		if ($cache && @filemtime($cacheFile) + $cacheExpire > time()) { // intentionally @
+		$expiration = is_string($cacheExpire) ? strtotime($cacheExpire) - time() : $cacheExpire;
+		if ($cache && @filemtime($cacheFile) + $expiration > time()) { // intentionally @
 			return $cache;
 		}
 
