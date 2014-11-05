@@ -97,6 +97,10 @@ returns the array of most recent tweets authored by the authenticating user:
 
 Changelog
 ---------
+v3.4 (11/2014)
+- cache expiration can be specified as string
+- fixed some bugs
+
 v3.3 (3/2014)
 - Twitter::send($status, $image) can upload image
 - added Twitter::follow()

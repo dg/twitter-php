@@ -11,7 +11,7 @@ require_once dirname(__FILE__) . '/OAuth.php';
  * @license    New BSD License
  * @link       http://phpfashion.com/twitter-for-php
  * @see        https://dev.twitter.com/rest/public
- * @version    3.3
+ * @version    3.4
  */
 class Twitter
 {
