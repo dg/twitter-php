@@ -97,6 +97,9 @@ returns the array of most recent tweets authored by the authenticating user:
 
 Changelog
 ---------
+v3.5 (12/2014)
+- allows to send message starting with @ and upload file at the same time in PHP >= 5.5
+
 v3.4 (11/2014)
 - cache expiration can be specified as string
 - fixed some bugs

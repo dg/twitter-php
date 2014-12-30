@@ -8,7 +8,7 @@
  *
  * Homepage:    http://phpfashion.com/twitter-for-php
  * Twitter API: https://dev.twitter.com/rest/public
- * Version:     3.4
+ * Version:     3.5
  */
 
 
