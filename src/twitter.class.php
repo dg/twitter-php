@@ -229,15 +229,21 @@ class Twitter
 			$resource = self::API_URL . $resource;
 		}
 
-		foreach (array_keys((array) $data, NULL, TRUE) as $key) {
-			unset($data[$key]);
+		$hasCURLFile = class_exists('CURLFile', FALSE);
+
+		foreach ((array) $data as $key => $val) {
+			if ($val === NULL) {
+				unset($data[$key]);
+			} elseif ($files && !$hasCURLFile && substr($val, 0, 1) === '@') {
+				throw new TwitterException('Due to limitation of cURL it is not possible to send message starting with @ and upload file at the same time in PHP < 5.5');
+			}
 		}
 
 		foreach ((array) $files as $key => $file) {
 			if (!is_file($file)) {
 				throw new TwitterException("Cannot read the file $file. Check if file exists on disk and check its permissions.");
 			}
-			$data[$key] = '@' . $file;
+			$data[$key] = $hasCURLFile ? new CURLFile($file) : '@' . $file;
 		}
 
 		$request = Twitter_OAuthRequest::from_consumer_and_token($this->consumer, $this->token, $method, $resource, $files ? array() : $data);
@@ -247,6 +253,7 @@ class Twitter
 			CURLOPT_HEADER => FALSE,
 			CURLOPT_RETURNTRANSFER => TRUE,
 		) + ($method === 'POST' ? array(
+			$hasCURLFile ? CURLOPT_SAFE_UPLOAD : -1 => TRUE,
 			CURLOPT_POST => TRUE,
 			CURLOPT_POSTFIELDS => $files ? $data : $request->to_postdata(),
 			CURLOPT_URL => $files ? $request->to_url() : $request->get_normalized_http_url(),
