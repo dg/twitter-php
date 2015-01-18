@@ -228,7 +228,7 @@ class Twitter
 			$resource = self::API_URL . $resource;
 		}
 
-		$hasCURLFile = class_exists('CURLFile', FALSE);
+		$hasCURLFile = class_exists('CURLFile', FALSE) && defined('CURLOPT_SAFE_UPLOAD');
 
 		foreach ((array) $data as $key => $val) {
 			if ($val === NULL) {
