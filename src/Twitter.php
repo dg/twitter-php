@@ -252,13 +252,16 @@ class Twitter
 			CURLOPT_HEADER => FALSE,
 			CURLOPT_RETURNTRANSFER => TRUE,
 		) + ($method === 'POST' ? array(
-			$hasCURLFile ? CURLOPT_SAFE_UPLOAD : -1 => TRUE,
 			CURLOPT_POST => TRUE,
 			CURLOPT_POSTFIELDS => $files ? $data : $request->to_postdata(),
 			CURLOPT_URL => $files ? $request->to_url() : $request->get_normalized_http_url(),
 		) : array(
 			CURLOPT_URL => $request->to_url(),
 		)) + $this->httpOptions;
+
+		if ($method === 'POST' && $hasCURLFile) {
+			$options[CURLOPT_SAFE_UPLOAD] = TRUE;
+		}
 
 		$curl = curl_init();
 		curl_setopt_array($curl, $options);
