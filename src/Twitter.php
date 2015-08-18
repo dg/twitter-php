@@ -309,10 +309,12 @@ class Twitter
 			. md5($resource . json_encode($data) . serialize(array($this->consumer, $this->token)))
 			. '.json';
 
-		$cache = @json_decode(@file_get_contents($cacheFile)); // intentionally @
-		$expiration = is_string($cacheExpire) ? strtotime($cacheExpire) - time() : $cacheExpire;
-		if ($cache && @filemtime($cacheFile) + $expiration > time()) { // intentionally @
-			return $cache;
+		if (file_exists($cacheFile)) {
+			$cache = json_decode(file_get_contents($cacheFile));
+			$expiration = is_string($cacheExpire) ? strtotime($cacheExpire) - time() : $cacheExpire;
+			if ($cache && filemtime($cacheFile) + $expiration > time()) {
+				return $cache;
+			}
 		}
 
 		try {
