@@ -184,6 +184,22 @@ class Twitter
 
 
 	/**
+	 * Returns list of followers of a given user.
+	 * @param  string
+	 * @return stdClass  see https://dev.twitter.com/rest/reference/get/followers/list
+	 * @throws TwitterException
+	 */
+	public function loadUserFollowersList($username, $count = 200, $cursor = -1, $cacheExpiry = null)
+	{
+		return $this->cachedRequest('followers/list', array(
+			'screen_name' => $username,
+			'count' => $count,
+			'cursor' => $cursor,
+		), $cacheExpiry);
+	}
+
+
+	/**
 	 * Destroys status.
 	 * @param  int|string  id of status to be destroyed
 	 * @return mixed
