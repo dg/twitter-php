@@ -10,6 +10,10 @@
 			"homepage": "http://davidgrudl.com"
 		}
 	],
+	"require": {
+		"php": ">=5.2.0",
+		"ext-curl": "*"
+	},
 	"autoload": {
 		"classmap": ["src/"]
 	}
