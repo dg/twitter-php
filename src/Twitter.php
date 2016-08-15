@@ -115,6 +115,21 @@ class Twitter
 
 
 	/**
+	 * Sends a direct message to the specified user.
+	 * @return stdClass  see https://dev.twitter.com/rest/reference/post/direct_messages/new
+	 * @throws TwitterException
+	 */
+	public function sendDirectMessage($username, $message)
+	{
+		return $this->request(
+			'direct_messages/new',
+			'POST',
+			array('text' => $message, 'screen_name' => $username)
+		);
+	}
+
+
+	/**
 	 * Follows a user on Twitter.
 	 * @param  string
 	 * @return stdClass  see https://dev.twitter.com/rest/reference/post/friendships/create
