@@ -6,7 +6,7 @@ require_once '../src/twitter.class.php';
 $twitter = new Twitter($consumerKey, $consumerSecret, $accessToken, $accessTokenSecret);
 
 try {
-	$tweet = $twitter->send('I am fine'); // you can add $imagePath as second argument
+	$tweet = $twitter->send('I am fine'); // you can add $imagePath or array of image paths as second argument
 
 } catch (TwitterException $e) {
 	echo 'Error: ' . $e->getMessage();

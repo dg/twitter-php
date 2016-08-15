@@ -96,11 +96,20 @@ class Twitter
 	 */
 	public function send($message, $media = NULL)
 	{
+		$mediaIds = array();
+		foreach ((array) $media as $item) {
+			$res = $this->request(
+				'https://upload.twitter.com/1.1/media/upload.json',
+				'POST',
+				NULL,
+				array('media' => $item)
+			);
+			$mediaIds[] = $res->media_id_string;
+		}
 		return $this->request(
-			$media ? 'statuses/update_with_media' : 'statuses/update',
+			'statuses/update',
 			'POST',
-			array('status' => $message),
-			$media ? array('media[]' => $media) : NULL
+			array('status' => $message, 'media_ids' => $mediaIds ? implode(',', $mediaIds) : NULL)
 		);
 	}
 
