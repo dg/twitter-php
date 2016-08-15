@@ -374,20 +374,10 @@ class Twitter
 
 	/**
 	 * Makes twitter links, @usernames and #hashtags clickable.
-	 * @param  stdClass  status
 	 * @return string
 	 */
-	public static function clickable($status)
+	public static function clickable(stdClass $status)
 	{
-		if (!is_object($status)) { // back compatibility
-			trigger_error(__METHOD__ . '() has been changed; pass as parameter status object, not just text.', E_USER_WARNING);
-			return preg_replace_callback(
-				'~(?<!\w)(https?://\S+\w|www\.\S+\w|@\w+|#\w+)|[<>&]~u',
-				array(__CLASS__, 'clickableCallback'),
-				html_entity_decode($status, ENT_QUOTES, 'UTF-8')
-			);
-		}
-
 		$all = array();
 		foreach ($status->entities->hashtags as $item) {
 			$all[$item->indices[0]] = array("https://twitter.com/search?q=%23$item->text", "#$item->text", $item->indices[1]);
@@ -416,25 +406,6 @@ class Twitter
 				. iconv_substr($s, $item[2], iconv_strlen($s, 'UTF-8'), 'UTF-8');
 		}
 		return $s;
-	}
-
-
-	private static function clickableCallback($m)
-	{
-		$m = htmlspecialchars($m[0]);
-		if ($m[0] === '#') {
-			$m = substr($m, 1);
-			return "<a href='https://twitter.com/search?q=%23$m'>#$m</a>";
-		} elseif ($m[0] === '@') {
-			$m = substr($m, 1);
-			return "@<a href='https://twitter.com/$m'>$m</a>";
-		} elseif ($m[0] === 'w') {
-			return "<a href='http://$m'>$m</a>";
-		} elseif ($m[0] === 'h') {
-			return "<a href='$m'>$m</a>";
-		} else {
-			return $m;
-		}
 	}
 
 }
