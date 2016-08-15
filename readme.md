@@ -92,7 +92,7 @@ You can use all commands defined by [Twitter API 1.1](https://dev.twitter.com/re
 For example [GET statuses/retweets_of_me](https://dev.twitter.com/rest/reference/get/statuses/retweets_of_me)
 returns the array of most recent tweets authored by the authenticating user:
 
-	$statuses = $twitter->request('statuses/retweets_of_me', 'GET', array('count' => 20));
+	$statuses = $twitter->request('statuses/retweets_of_me', 'GET', ['count' => 20]);
 
 
 Changelog

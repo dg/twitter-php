@@ -34,12 +34,12 @@ class Twitter
 	public static $cacheDir;
 
 	/** @var array */
-	public $httpOptions = array(
+	public $httpOptions = [
 		CURLOPT_TIMEOUT => 20,
 		CURLOPT_SSL_VERIFYPEER => 0,
-		CURLOPT_HTTPHEADER => array('Expect:'),
+		CURLOPT_HTTPHEADER => ['Expect:'],
 		CURLOPT_USERAGENT => 'Twitter for PHP',
-	);
+	];
 
 	/** @var Twitter_OAuthConsumer */
 	private $consumer;
@@ -96,20 +96,20 @@ class Twitter
 	 */
 	public function send($message, $media = NULL)
 	{
-		$mediaIds = array();
+		$mediaIds = [];
 		foreach ((array) $media as $item) {
 			$res = $this->request(
 				'https://upload.twitter.com/1.1/media/upload.json',
 				'POST',
 				NULL,
-				array('media' => $item)
+				['media' => $item]
 			);
 			$mediaIds[] = $res->media_id_string;
 		}
 		return $this->request(
 			'statuses/update',
 			'POST',
-			array('status' => $message, 'media_ids' => $mediaIds ? implode(',', $mediaIds) : NULL)
+			['status' => $message, 'media_ids' => implode(',', $mediaIds) ?: NULL]
 		);
 	}
 
@@ -124,7 +124,7 @@ class Twitter
 		return $this->request(
 			'direct_messages/new',
 			'POST',
-			array('text' => $message, 'screen_name' => $username)
+			['text' => $message, 'screen_name' => $username]
 		);
 	}
 
@@ -137,7 +137,7 @@ class Twitter
 	 */
 	public function follow($username)
 	{
-		return $this->request('friendships/create', 'POST', array('screen_name' => $username));
+		return $this->request('friendships/create', 'POST', ['screen_name' => $username]);
 	}
 
 
@@ -151,19 +151,19 @@ class Twitter
 	 */
 	public function load($flags = self::ME, $count = 20, array $data = NULL)
 	{
-		static $timelines = array(
+		static $timelines = [
 			self::ME => 'user_timeline',
 			self::ME_AND_FRIENDS => 'home_timeline',
 			self::REPLIES => 'mentions_timeline',
-		);
+		];
 		if (!isset($timelines[$flags & 3])) {
 			throw new InvalidArgumentException;
 		}
 
-		return $this->cachedRequest('statuses/' . $timelines[$flags & 3], (array) $data + array(
+		return $this->cachedRequest('statuses/' . $timelines[$flags & 3], (array) $data + [
 			'count' => $count,
 			'include_rts' => $flags & self::RETWEETS ? 1 : 0,
-		));
+		]);
 	}
 
 
@@ -175,7 +175,7 @@ class Twitter
 	 */
 	public function loadUserInfo($username)
 	{
-		return $this->cachedRequest('users/show', array('screen_name' => $username));
+		return $this->cachedRequest('users/show', ['screen_name' => $username]);
 	}
 
 
@@ -187,7 +187,7 @@ class Twitter
 	 */
 	public function loadUserInfoById($id)
 	{
-		return $this->cachedRequest('users/show', array('user_id' => $id));
+		return $this->cachedRequest('users/show', ['user_id' => $id]);
 	}
 
 
@@ -199,11 +199,11 @@ class Twitter
 	 */
 	public function loadUserFollowers($username, $count = 5000, $cursor = -1, $cacheExpiry = null)
 	{
-		return $this->cachedRequest('followers/ids', array(
+		return $this->cachedRequest('followers/ids', [
 			'screen_name' => $username,
 			'count' => $count,
 			'cursor' => $cursor,
-		), $cacheExpiry);
+		], $cacheExpiry);
 	}
 
 
@@ -215,11 +215,11 @@ class Twitter
 	 */
 	public function loadUserFollowersList($username, $count = 200, $cursor = -1, $cacheExpiry = null)
 	{
-		return $this->cachedRequest('followers/list', array(
+		return $this->cachedRequest('followers/list', [
 			'screen_name' => $username,
 			'count' => $count,
 			'cursor' => $cursor,
-		), $cacheExpiry);
+		], $cacheExpiry);
 	}
 
 
@@ -245,7 +245,7 @@ class Twitter
 	 */
 	public function search($query, $full = FALSE)
 	{
-		$res = $this->request('search/tweets', 'GET', is_array($query) ? $query : array('q' => $query));
+		$res = $this->request('search/tweets', 'GET', is_array($query) ? $query : ['q' => $query]);
 		return $full ? $res : $res->statuses;
 	}
 
@@ -285,19 +285,19 @@ class Twitter
 			$data[$key] = $hasCURLFile ? new CURLFile($file) : '@' . $file;
 		}
 
-		$request = Twitter_OAuthRequest::from_consumer_and_token($this->consumer, $this->token, $method, $resource, $files ? array() : $data);
+		$request = Twitter_OAuthRequest::from_consumer_and_token($this->consumer, $this->token, $method, $resource, $files ? [] : $data);
 		$request->sign_request(new Twitter_OAuthSignatureMethod_HMAC_SHA1, $this->consumer, $this->token);
 
-		$options = array(
+		$options = [
 			CURLOPT_HEADER => FALSE,
 			CURLOPT_RETURNTRANSFER => TRUE,
-		) + ($method === 'POST' ? array(
+		] + ($method === 'POST' ? [
 			CURLOPT_POST => TRUE,
 			CURLOPT_POSTFIELDS => $files ? $data : $request->to_postdata(),
 			CURLOPT_URL => $files ? $request->to_url() : $request->get_normalized_http_url(),
-		) : array(
+		] : [
 			CURLOPT_URL => $request->to_url(),
-		)) + $this->httpOptions;
+		]) + $this->httpOptions;
 
 		if ($method === 'POST' && $hasCURLFile) {
 			$options[CURLOPT_SAFE_UPLOAD] = TRUE;
@@ -349,7 +349,7 @@ class Twitter
 
 		$cacheFile = self::$cacheDir
 			. '/twitter.'
-			. md5($resource . json_encode($data) . serialize(array($this->consumer, $this->token)))
+			. md5($resource . json_encode($data) . serialize([$this->consumer, $this->token]))
 			. '.json';
 
 		$cache = @json_decode(@file_get_contents($cacheFile)); // intentionally @
@@ -378,23 +378,23 @@ class Twitter
 	 */
 	public static function clickable(stdClass $status)
 	{
-		$all = array();
+		$all = [];
 		foreach ($status->entities->hashtags as $item) {
-			$all[$item->indices[0]] = array("https://twitter.com/search?q=%23$item->text", "#$item->text", $item->indices[1]);
+			$all[$item->indices[0]] = ["https://twitter.com/search?q=%23$item->text", "#$item->text", $item->indices[1]];
 		}
 		foreach ($status->entities->urls as $item) {
 			if (!isset($item->expanded_url)) {
-				$all[$item->indices[0]] = array($item->url, $item->url, $item->indices[1]);
+				$all[$item->indices[0]] = [$item->url, $item->url, $item->indices[1]];
 			} else {
-				$all[$item->indices[0]] = array($item->expanded_url, $item->display_url, $item->indices[1]);
+				$all[$item->indices[0]] = [$item->expanded_url, $item->display_url, $item->indices[1]];
 			}
 		}
 		foreach ($status->entities->user_mentions as $item) {
-			$all[$item->indices[0]] = array("https://twitter.com/$item->screen_name", "@$item->screen_name", $item->indices[1]);
+			$all[$item->indices[0]] = ["https://twitter.com/$item->screen_name", "@$item->screen_name", $item->indices[1]];
 		}
 		if (isset($status->entities->media)) {
 			foreach ($status->entities->media as $item) {
-				$all[$item->indices[0]] = array($item->url, $item->display_url, $item->indices[1]);
+				$all[$item->indices[0]] = [$item->url, $item->display_url, $item->indices[1]];
 			}
 		}
 

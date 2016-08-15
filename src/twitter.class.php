@@ -1,4 +1,4 @@
 <?php
 
-require_once dirname(__FILE__) . '/OAuth.php';
-require_once dirname(__FILE__) . '/Twitter.php';
+require_once __DIR__ . '/OAuth.php';
+require_once __DIR__ . '/Twitter.php';

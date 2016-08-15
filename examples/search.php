@@ -7,7 +7,7 @@ require_once '../src/twitter.class.php';
 $twitter = new Twitter($consumerKey, $consumerSecret, $accessToken, $accessTokenSecret);
 
 $results = $twitter->search('#nette');
-// or use hashmap: $results = $twitter->search(array('q' => '#nette', 'geocode' => '50.088224,15.975611,20km'));
+// or use hashmap: $results = $twitter->search(['q' => '#nette', 'geocode' => '50.088224,15.975611,20km']);
 
 ?>
 <!doctype html>
