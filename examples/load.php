@@ -3,7 +3,7 @@
 require_once '../src/twitter.class.php';
 
 // enables caching (path must exists and must be writable!)
-// Twitter::$cacheDir = dirname(__FILE__) . '/temp';
+// Twitter::$cacheDir = __DIR__ . '/temp';
 
 
 // ENTER HERE YOUR CREDENTIALS (see readme.txt)

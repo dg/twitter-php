@@ -6,7 +6,7 @@
 Twitter for PHP is a very small and easy-to-use library for sending
 messages to Twitter and receiving status updates.
 
-It requires PHP 5.0 or newer with CURL extension and is licensed under the New BSD License.
+It requires PHP 5.4 or newer with CURL extension and is licensed under the New BSD License.
 You can obtain the latest version from our [GitHub repository](https://github.com/dg/twitter-php)
 or install it via Composer:
 
@@ -92,7 +92,7 @@ You can use all commands defined by [Twitter API 1.1](https://dev.twitter.com/re
 For example [GET statuses/retweets_of_me](https://dev.twitter.com/rest/reference/get/statuses/retweets_of_me)
 returns the array of most recent tweets authored by the authenticating user:
 
-	$statuses = $twitter->request('statuses/retweets_of_me', 'GET', array('count' => 20));
+	$statuses = $twitter->request('statuses/retweets_of_me', 'GET', ['count' => 20]);
 
 
 Changelog
