@@ -97,6 +97,11 @@ returns the array of most recent tweets authored by the authenticating user:
 
 Changelog
 ---------
+v3.6 (8/2016)
+- added loadUserFollowersList() and sendDirectMessage()
+- Twitter::send() allows to upload multiple images
+- changed http:// to https://
+
 v3.5 (12/2014)
 - allows to send message starting with @ and upload file at the same time in PHP >= 5.5
 
@@ -138,4 +143,4 @@ v1.0 (7/2008)
 
 
 -----
-(c) David Grudl, 2008, 2014 (https://davidgrudl.com)
+(c) David Grudl, 2008, 2016 (https://davidgrudl.com)
