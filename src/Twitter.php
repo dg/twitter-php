@@ -192,7 +192,7 @@ class Twitter
 
 
 	/**
-	 * Returns followers of a given user.
+	 * Returns IDs of followers of a given user.
 	 * @param  string
 	 * @return stdClass  see https://dev.twitter.com/rest/reference/get/followers/ids
 	 * @throws TwitterException
@@ -200,6 +200,22 @@ class Twitter
 	public function loadUserFollowers($username, $count = 5000, $cursor = -1, $cacheExpiry = null)
 	{
 		return $this->cachedRequest('followers/ids', array(
+			'screen_name' => $username,
+			'count' => $count,
+			'cursor' => $cursor,
+		), $cacheExpiry);
+	}
+
+
+	/**
+	 * Returns list of followers of a given user.
+	 * @param  string
+	 * @return stdClass  see https://dev.twitter.com/rest/reference/get/followers/list
+	 * @throws TwitterException
+	 */
+	public function loadUserFollowersList($username, $count = 200, $cursor = -1, $cacheExpiry = null)
+	{
+		return $this->cachedRequest('followers/list', array(
 			'screen_name' => $username,
 			'count' => $count,
 			'cursor' => $cursor,
