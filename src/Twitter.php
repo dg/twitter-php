@@ -3,10 +3,10 @@
 /**
  * Twitter for PHP - library for sending messages to Twitter and receiving status updates.
  *
- * Copyright (c) 2008 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2008 David Grudl (https://davidgrudl.com)
  * This software is licensed under the New BSD License.
  *
- * Homepage:    http://phpfashion.com/twitter-for-php
+ * Homepage:    https://phpfashion.com/twitter-for-php
  * Twitter API: https://dev.twitter.com/rest/public
  * Version:     3.5
  */
@@ -350,7 +350,7 @@ class Twitter
 
 		$all = array();
 		foreach ($status->entities->hashtags as $item) {
-			$all[$item->indices[0]] = array("http://twitter.com/search?q=%23$item->text", "#$item->text", $item->indices[1]);
+			$all[$item->indices[0]] = array("https://twitter.com/search?q=%23$item->text", "#$item->text", $item->indices[1]);
 		}
 		foreach ($status->entities->urls as $item) {
 			if (!isset($item->expanded_url)) {
@@ -360,7 +360,7 @@ class Twitter
 			}
 		}
 		foreach ($status->entities->user_mentions as $item) {
-			$all[$item->indices[0]] = array("http://twitter.com/$item->screen_name", "@$item->screen_name", $item->indices[1]);
+			$all[$item->indices[0]] = array("https://twitter.com/$item->screen_name", "@$item->screen_name", $item->indices[1]);
 		}
 		if (isset($status->entities->media)) {
 			foreach ($status->entities->media as $item) {
@@ -384,10 +384,10 @@ class Twitter
 		$m = htmlspecialchars($m[0]);
 		if ($m[0] === '#') {
 			$m = substr($m, 1);
-			return "<a href='http://twitter.com/search?q=%23$m'>#$m</a>";
+			return "<a href='https://twitter.com/search?q=%23$m'>#$m</a>";
 		} elseif ($m[0] === '@') {
 			$m = substr($m, 1);
-			return "@<a href='http://twitter.com/$m'>$m</a>";
+			return "@<a href='https://twitter.com/$m'>$m</a>";
 		} elseif ($m[0] === 'w') {
 			return "<a href='http://$m'>$m</a>";
 		} elseif ($m[0] === 'h') {

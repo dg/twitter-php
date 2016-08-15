@@ -1,4 +1,4 @@
-[Twitter for PHP](http://phpfashion.com/twitter-for-php)  [![Buy me a coffee](http://files.nette.org/images/coffee1s.png)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=QLFKBFDU6C94L)
+[Twitter for PHP](https://phpfashion.com/twitter-for-php)  [![Buy me a coffee](https://files.nette.org/images/coffee1s.png)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=QLFKBFDU6C94L)
 ================================
 
 [![Downloads this Month](https://img.shields.io/packagist/dm/dg/twitter-php.svg)](https://packagist.org/packages/dg/twitter-php)
@@ -7,7 +7,7 @@ Twitter for PHP is a very small and easy-to-use library for sending
 messages to Twitter and receiving status updates.
 
 It requires PHP 5.0 or newer with CURL extension and is licensed under the New BSD License.
-You can obtain the latest version from our [GitHub repository](http://github.com/dg/twitter-php)
+You can obtain the latest version from our [GitHub repository](https://github.com/dg/twitter-php)
 or install it via Composer:
 
 	composer require dg/twitter-php
@@ -15,7 +15,7 @@ or install it via Composer:
 
 Usage
 -----
-Sign in to the http://twitter.com and register an application from the https://apps.twitter.com page. Remember
+Sign in to the https://twitter.com and register an application from the https://apps.twitter.com page. Remember
 to never reveal your consumer secrets. Click on My Access Token link from the sidebar and retrieve your own access
 token. Now you have consumer key, consumer secret, access token and access token secret.
 
@@ -138,4 +138,4 @@ v1.0 (7/2008)
 
 
 -----
-(c) David Grudl, 2008, 2014 (http://davidgrudl.com)
+(c) David Grudl, 2008, 2014 (https://davidgrudl.com)
