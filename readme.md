@@ -21,44 +21,58 @@ token. Now you have consumer key, consumer secret, access token and access token
 
 Create object using application and request/access keys
 
-	$twitter = new Twitter($consumerKey, $consumerSecret, $accessToken, $accessTokenSecret);
+```php
+$twitter = new Twitter($consumerKey, $consumerSecret, $accessToken, $accessTokenSecret);
+```
 
 The send() method updates your status. The message must be encoded in UTF-8:
 
-	$twitter->send('I am fine today.');
+```php
+$twitter->send('I am fine today.');
+```
 
 The load() method returns the 20 most recent status updates
 posted in the last 24 hours by you:
 
-	$statuses = $twitter->load(Twitter::ME);
+```php
+$statuses = $twitter->load(Twitter::ME);
+```
 
 or posted by you and your friends:
 
-	$statuses = $twitter->load(Twitter::ME_AND_FRIENDS);
-
+```php
+$statuses = $twitter->load(Twitter::ME_AND_FRIENDS);
+```
 or most recent mentions for you:
 
-	$statuses = $twitter->load(Twitter::REPLIES);
-
+```php
+$statuses = $twitter->load(Twitter::REPLIES);
+```
 Extracting the information from the channel is easy:
 
-	foreach ($statuses as $status) {
-		echo "message: ", Twitter::clickable($status);
-		echo "posted at " , $status->created_at;
-		echo "posted by " , $status->user->name;
-	}
+```php
+foreach ($statuses as $status) {
+	echo "message: ", Twitter::clickable($status);
+	echo "posted at " , $status->created_at;
+	echo "posted by " , $status->user->name;
+}
+```
 
 The static method `Twitter::clickable()` makes links, mentions and hash tags in status clickable.
 
 The authenticate() method tests if user credentials are valid:
 
-	if (!$twitter->authenticate()) {
-		die('Invalid name or password');
-	}
+```php
+if (!$twitter->authenticate()) {
+	die('Invalid name or password');
+}
+```
 
 The search() method provides searching in twitter statuses:
 
-	$results = $twitter->search('#nette');
+```php
+$results = $twitter->search('#nette');
+```
 
 The returned result is a again array of statuses.
 
@@ -68,22 +82,24 @@ Error handling
 
 All methods throw a TwitterException on error:
 
-	try {
-		$statuses = $twitter->load(Twitter::ME);
-	} catch (TwitterException $e) {
-		echo "Error: ", $e->getMessage();
-	}
-
+```php
+try {
+	$statuses = $twitter->load(Twitter::ME);
+} catch (TwitterException $e) {
+	echo "Error: ", $e->getMessage();
+}
+```
 
 Additional features
 -------------------
 
 The `authenticate()` method tests if user credentials are valid:
 
-	if (!$twitter->authenticate()) {
-		die('Invalid name or password');
-	}
-
+```php
+if (!$twitter->authenticate()) {
+	die('Invalid name or password');
+}
+```
 
 Other commands
 --------------
@@ -92,8 +108,9 @@ You can use all commands defined by [Twitter API 1.1](https://dev.twitter.com/re
 For example [GET statuses/retweets_of_me](https://dev.twitter.com/rest/reference/get/statuses/retweets_of_me)
 returns the array of most recent tweets authored by the authenticating user:
 
-	$statuses = $twitter->request('statuses/retweets_of_me', 'GET', ['count' => 20]);
-
+```php
+$statuses = $twitter->request('statuses/retweets_of_me', 'GET', ['count' => 20]);
+```
 
 Changelog
 ---------
