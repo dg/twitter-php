@@ -91,10 +91,15 @@ class Twitter
 	/**
 	 * Sends message to the Twitter.
 	 * @param  string   message encoded in UTF-8
+	 * @param string media
+	 *   Path to local media file to be uploaded
+	 * @param array $options
+	 *   Any additional options to send to statuses/update
+	 *
 	 * @return stdClass  see https://dev.twitter.com/rest/reference/post/statuses/update
 	 * @throws TwitterException
 	 */
-	public function send($message, $media = NULL)
+	public function send($message, $media = NULL, $options = [])
 	{
 		$mediaIds = [];
 		foreach ((array) $media as $item) {
@@ -106,10 +111,11 @@ class Twitter
 			);
 			$mediaIds[] = $res->media_id_string;
 		}
+    $request = array_merge($options, ['status' => $message, 'media_ids' => implode(',', $mediaIds) ?: NULL]);
 		return $this->request(
 			'statuses/update',
 			'POST',
-			['status' => $message, 'media_ids' => implode(',', $mediaIds) ?: NULL]
+			$request
 		);
 	}
 
