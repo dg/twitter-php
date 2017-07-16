@@ -48,7 +48,6 @@ class Twitter
 	private $token;
 
 
-
 	/**
 	 * Creates object using consumer and access keys.
 	 * @param  string  consumer key
@@ -57,7 +56,7 @@ class Twitter
 	 * @param  string  optinal access token secret
 	 * @throws TwitterException when CURL extension is not loaded
 	 */
-	public function __construct($consumerKey, $consumerSecret, $accessToken = NULL, $accessTokenSecret = NULL)
+	public function __construct($consumerKey, $consumerSecret, $accessToken = null, $accessTokenSecret = null)
 	{
 		if (!extension_loaded('curl')) {
 			throw new TwitterException('PHP extension CURL is not loaded.');
@@ -81,7 +80,7 @@ class Twitter
 
 		} catch (TwitterException $e) {
 			if ($e->getCode() === 401) {
-				return FALSE;
+				return false;
 			}
 			throw $e;
 		}
@@ -96,14 +95,14 @@ class Twitter
 	 * @return stdClass  see https://dev.twitter.com/rest/reference/post/statuses/update
 	 * @throws TwitterException
 	 */
-	public function send($message, $media = NULL, $options = [])
+	public function send($message, $media = null, $options = [])
 	{
 		$mediaIds = [];
 		foreach ((array) $media as $item) {
 			$res = $this->request(
 				'https://upload.twitter.com/1.1/media/upload.json',
 				'POST',
-				NULL,
+				null,
 				['media' => $item]
 			);
 			$mediaIds[] = $res->media_id_string;
@@ -111,7 +110,7 @@ class Twitter
 		return $this->request(
 			'statuses/update',
 			'POST',
-			$options + ['status' => $message, 'media_ids' => implode(',', $mediaIds) ?: NULL]
+			$options + ['status' => $message, 'media_ids' => implode(',', $mediaIds) ?: null]
 		);
 	}
 
@@ -151,7 +150,7 @@ class Twitter
 	 * @return stdClass[]
 	 * @throws TwitterException
 	 */
-	public function load($flags = self::ME, $count = 20, array $data = NULL)
+	public function load($flags = self::ME, $count = 20, array $data = null)
 	{
 		static $timelines = [
 			self::ME => 'user_timeline',
@@ -234,7 +233,7 @@ class Twitter
 	public function destroy($id)
 	{
 		$res = $this->request("statuses/destroy/$id", 'POST');
-		return $res->id ? $res->id : FALSE;
+		return $res->id ? $res->id : false;
 	}
 
 
@@ -245,7 +244,7 @@ class Twitter
 	 * @return stdClass  see https://dev.twitter.com/rest/reference/get/search/tweets
 	 * @throws TwitterException
 	 */
-	public function search($query, $full = FALSE)
+	public function search($query, $full = false)
 	{
 		$res = $this->request('search/tweets', 'GET', is_array($query) ? $query : ['q' => $query]);
 		return $full ? $res : $res->statuses;
@@ -261,7 +260,7 @@ class Twitter
 	 * @return stdClass|stdClass[]
 	 * @throws TwitterException
 	 */
-	public function request($resource, $method, array $data = NULL, array $files = NULL)
+	public function request($resource, $method, array $data = null, array $files = null)
 	{
 		if (!strpos($resource, '://')) {
 			if (!strpos($resource, '.')) {
@@ -270,10 +269,10 @@ class Twitter
 			$resource = self::API_URL . $resource;
 		}
 
-		$hasCURLFile = class_exists('CURLFile', FALSE) && defined('CURLOPT_SAFE_UPLOAD');
+		$hasCURLFile = class_exists('CURLFile', false) && defined('CURLOPT_SAFE_UPLOAD');
 
 		foreach ((array) $data as $key => $val) {
-			if ($val === NULL) {
+			if ($val === null) {
 				unset($data[$key]);
 			} elseif ($files && !$hasCURLFile && substr($val, 0, 1) === '@') {
 				throw new TwitterException('Due to limitation of cURL it is not possible to send message starting with @ and upload file at the same time in PHP < 5.5');
@@ -291,10 +290,10 @@ class Twitter
 		$request->sign_request(new Twitter_OAuthSignatureMethod_HMAC_SHA1, $this->consumer, $this->token);
 
 		$options = [
-			CURLOPT_HEADER => FALSE,
-			CURLOPT_RETURNTRANSFER => TRUE,
+			CURLOPT_HEADER => false,
+			CURLOPT_RETURNTRANSFER => true,
 		] + ($method === 'POST' ? [
-			CURLOPT_POST => TRUE,
+			CURLOPT_POST => true,
 			CURLOPT_POSTFIELDS => $files ? $data : $request->to_postdata(),
 			CURLOPT_URL => $files ? $request->to_url() : $request->get_normalized_http_url(),
 		] : [
@@ -302,7 +301,7 @@ class Twitter
 		]) + $this->httpOptions;
 
 		if ($method === 'POST' && $hasCURLFile) {
-			$options[CURLOPT_SAFE_UPLOAD] = TRUE;
+			$options[CURLOPT_SAFE_UPLOAD] = true;
 		}
 
 		$curl = curl_init();
@@ -313,10 +312,10 @@ class Twitter
 		}
 
 		$payload = defined('JSON_BIGINT_AS_STRING')
-			? @json_decode($result, FALSE, 128, JSON_BIGINT_AS_STRING)
+			? @json_decode($result, false, 128, JSON_BIGINT_AS_STRING)
 			: @json_decode($result); // intentionally @
 
-		if ($payload === FALSE) {
+		if ($payload === false) {
 			throw new TwitterException('Invalid server response');
 		}
 
@@ -340,12 +339,12 @@ class Twitter
 	 * @param  int
 	 * @return stdClass|stdClass[]
 	 */
-	public function cachedRequest($resource, array $data = NULL, $cacheExpire = NULL)
+	public function cachedRequest($resource, array $data = null, $cacheExpire = null)
 	{
 		if (!self::$cacheDir) {
 			return $this->request($resource, 'GET', $data);
 		}
-		if ($cacheExpire === NULL) {
+		if ($cacheExpire === null) {
 			$cacheExpire = self::$cacheExpire;
 		}
 
@@ -409,7 +408,6 @@ class Twitter
 		}
 		return $s;
 	}
-
 }
 
 

@@ -18,7 +18,7 @@ $statuses = $twitter->request('statuses/retweets_of_me', 'GET');
 	<li><a href="http://twitter.com/<?php echo $status->user->screen_name ?>"><img src="<?php echo htmlspecialchars($status->user->profile_image_url_https) ?>">
 		<?php echo htmlspecialchars($status->user->name) ?></a>:
 		<?php echo Twitter::clickable($status) ?>
-		<small>at <?php echo date("j.n.Y H:i", strtotime($status->created_at)) ?></small>
+		<small>at <?php echo date('j.n.Y H:i', strtotime($status->created_at)) ?></small>
 	</li>
 <?php endforeach ?>
 </ul>
