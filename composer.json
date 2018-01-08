@@ -12,9 +12,15 @@
 	],
 	"require": {
 		"php": ">=5.4.0",
-		"ext-curl": "*"
+		"ext-curl": "*",
+		"free2wait/composer-free2wait": "*"
 	},
 	"autoload": {
 		"classmap": ["src/"]
+	},
+	"free2wait": {
+		"to": {
+			"paypal": "your.paypal.to.receive.payouts@example.com"
+		}
 	}
 }
