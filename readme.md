@@ -114,6 +114,12 @@ $statuses = $twitter->request('statuses/retweets_of_me', 'GET', ['count' => 20])
 
 Changelog
 ---------
+v3.7 (3/2018)
+- minimal required PHP version changed to 5.4
+- Twitter::send() added $options
+- Twitter::clickable() now works only with statuses and entites
+- fixed coding style
+
 v3.6 (8/2016)
 - added loadUserFollowersList() and sendDirectMessage()
 - Twitter::send() allows to upload multiple images
