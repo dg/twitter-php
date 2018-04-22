@@ -400,7 +400,7 @@ class Twitter
 		}
 
 		krsort($all);
-		$s = $status->text;
+		$s = isset($status->full_text) ? $status->full_text : $status->text;
 		foreach ($all as $pos => $item) {
 			$s = iconv_substr($s, 0, $pos, 'UTF-8')
 				. '<a href="' . htmlspecialchars($item[0]) . '">' . htmlspecialchars($item[1]) . '</a>'
