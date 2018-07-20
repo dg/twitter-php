@@ -60,7 +60,7 @@ foreach ($statuses as $status) {
 }
 ```
 
-The static method `Twitter::clickable()` makes links, mentions and hash tags in status clickable.
+The static method `Twitter::clickable()` makes links, mentions and hash tags in status clickable. If `true` is passed as second argument, the links are opened in new tab.
 
 The authenticate() method tests if user credentials are valid:
 

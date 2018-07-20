@@ -375,10 +375,14 @@ class Twitter
 
 	/**
 	 * Makes twitter links, @usernames and #hashtags clickable.
+	 * @param  stdClass
+	 * @param  bool  open links in new tab
 	 * @return string
 	 */
-	public static function clickable(stdClass $status)
+	public static function clickable(stdClass $status, $openLinksInNewTab = false)
 	{
+		$target = $openLinksInNewTab ? ' target="_blank"' : '';
+
 		$all = [];
 		foreach ($status->entities->hashtags as $item) {
 			$all[$item->indices[0]] = ["https://twitter.com/search?q=%23$item->text", "#$item->text", $item->indices[1]];
@@ -403,7 +407,7 @@ class Twitter
 		$s = isset($status->full_text) ? $status->full_text : $status->text;
 		foreach ($all as $pos => $item) {
 			$s = iconv_substr($s, 0, $pos, 'UTF-8')
-				. '<a href="' . htmlspecialchars($item[0]) . '">' . htmlspecialchars($item[1]) . '</a>'
+				. '<a href="' . htmlspecialchars($item[0]) . '"' . $target . '>' . htmlspecialchars($item[1]) . '</a>'
 				. iconv_substr($s, $item[2], iconv_strlen($s, 'UTF-8'), 'UTF-8');
 		}
 		return $s;
