@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Twitter for PHP - library for sending messages to Twitter and receiving status updates.
  *
