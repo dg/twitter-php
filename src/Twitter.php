@@ -52,13 +52,9 @@ class Twitter
 
 	/**
 	 * Creates object using consumer and access keys.
-	 * @param  string  consumer key
-	 * @param  string  app secret
-	 * @param  string  optional access token
-	 * @param  string  optinal access token secret
 	 * @throws Exception when CURL extension is not loaded
 	 */
-	public function __construct($consumerKey, $consumerSecret, $accessToken = null, $accessTokenSecret = null)
+	public function __construct(string $consumerKey, string $consumerSecret, string $accessToken = null, string $accessTokenSecret = null)
 	{
 		if (!extension_loaded('curl')) {
 			throw new Exception('PHP extension CURL is not loaded.');
@@ -71,10 +67,9 @@ class Twitter
 
 	/**
 	 * Tests if user credentials are valid.
-	 * @return bool
 	 * @throws Exception
 	 */
-	public function authenticate()
+	public function authenticate(): bool
 	{
 		try {
 			$res = $this->request('account/verify_credentials', 'GET');
@@ -91,16 +86,14 @@ class Twitter
 
 	/**
 	 * Sends message to the Twitter.
-	 * @param  string   message encoded in UTF-8
-	 * @param  string  path to local media file to be uploaded
-	 * @param  array  additional options to send to statuses/update
-	 * @return stdClass  see https://dev.twitter.com/rest/reference/post/statuses/update
+	 * https://dev.twitter.com/rest/reference/post/statuses/update
+	 * @param  string|array  $mediaPath  path to local media file to be uploaded
 	 * @throws Exception
 	 */
-	public function send($message, $media = null, $options = [])
+	public function send(string $message, $mediaPath = null, array $options = []): stdClass
 	{
 		$mediaIds = [];
-		foreach ((array) $media as $item) {
+		foreach ((array) $mediaPath as $item) {
 			$res = $this->request(
 				'https://upload.twitter.com/1.1/media/upload.json',
 				'POST',
@@ -119,10 +112,10 @@ class Twitter
 
 	/**
 	 * Sends a direct message to the specified user.
-	 * @return stdClass  see https://dev.twitter.com/rest/reference/post/direct_messages/new
+	 * https://dev.twitter.com/rest/reference/post/direct_messages/new
 	 * @throws Exception
 	 */
-	public function sendDirectMessage($username, $message)
+	public function sendDirectMessage(string $username, string $message): stdClass
 	{
 		return $this->request(
 			'direct_messages/events/new',
@@ -140,11 +133,10 @@ class Twitter
 
 	/**
 	 * Follows a user on Twitter.
-	 * @param  string
-	 * @return stdClass  see https://dev.twitter.com/rest/reference/post/friendships/create
+	 * https://dev.twitter.com/rest/reference/post/friendships/create
 	 * @throws Exception
 	 */
-	public function follow($username)
+	public function follow(string $username): stdClass
 	{
 		return $this->request('friendships/create', 'POST', ['screen_name' => $username]);
 	}
@@ -152,13 +144,12 @@ class Twitter
 
 	/**
 	 * Returns the most recent statuses.
-	 * @param  int    timeline (ME | ME_AND_FRIENDS | REPLIES) and optional (RETWEETS)
-	 * @param  int    number of statuses to retrieve
-	 * @param  array  additional options, see https://dev.twitter.com/rest/reference/get/statuses/user_timeline
+	 * https://dev.twitter.com/rest/reference/get/statuses/user_timeline
+	 * @param  int  $flags  timeline (ME | ME_AND_FRIENDS | REPLIES) and optional (RETWEETS)
 	 * @return stdClass[]
 	 * @throws Exception
 	 */
-	public function load($flags = self::ME, $count = 20, array $data = null)
+	public function load(int $flags = self::ME, int $count = 20, array $data = null): array
 	{
 		static $timelines = [
 			self::ME => 'user_timeline',
@@ -178,11 +169,10 @@ class Twitter
 
 	/**
 	 * Returns information of a given user.
-	 * @param  string
-	 * @return stdClass  see https://dev.twitter.com/rest/reference/get/users/show
+	 * https://dev.twitter.com/rest/reference/get/users/show
 	 * @throws Exception
 	 */
-	public function loadUserInfo($username)
+	public function loadUserInfo(string $username): stdClass
 	{
 		return $this->cachedRequest('users/show', ['screen_name' => $username]);
 	}
@@ -190,11 +180,10 @@ class Twitter
 
 	/**
 	 * Returns information of a given user by id.
-	 * @param  string
-	 * @return stdClass  see https://dev.twitter.com/rest/reference/get/users/show
+	 * https://dev.twitter.com/rest/reference/get/users/show
 	 * @throws Exception
 	 */
-	public function loadUserInfoById($id)
+	public function loadUserInfoById(string $id): stdClass
 	{
 		return $this->cachedRequest('users/show', ['user_id' => $id]);
 	}
@@ -202,11 +191,10 @@ class Twitter
 
 	/**
 	 * Returns IDs of followers of a given user.
-	 * @param  string
-	 * @return stdClass  see https://dev.twitter.com/rest/reference/get/followers/ids
+	 * https://dev.twitter.com/rest/reference/get/followers/ids
 	 * @throws Exception
 	 */
-	public function loadUserFollowers($username, $count = 5000, $cursor = -1, $cacheExpiry = null)
+	public function loadUserFollowers(string $username, int $count = 5000, int $cursor = -1, $cacheExpiry = null): stdClass
 	{
 		return $this->cachedRequest('followers/ids', [
 			'screen_name' => $username,
@@ -218,11 +206,10 @@ class Twitter
 
 	/**
 	 * Returns list of followers of a given user.
-	 * @param  string
-	 * @return stdClass  see https://dev.twitter.com/rest/reference/get/followers/list
+	 * https://dev.twitter.com/rest/reference/get/followers/list
 	 * @throws Exception
 	 */
-	public function loadUserFollowersList($username, $count = 200, $cursor = -1, $cacheExpiry = null)
+	public function loadUserFollowersList(string $username, int $count = 200, int $cursor = -1, $cacheExpiry = null): stdClass
 	{
 		return $this->cachedRequest('followers/list', [
 			'screen_name' => $username,
@@ -234,8 +221,7 @@ class Twitter
 
 	/**
 	 * Destroys status.
-	 * @param  int|string  id of status to be destroyed
-	 * @return mixed
+	 * @param  int|string  $id  status to be destroyed
 	 * @throws Exception
 	 */
 	public function destroy($id)
@@ -247,12 +233,11 @@ class Twitter
 
 	/**
 	 * Returns tweets that match a specified query.
+	 * https://dev.twitter.com/rest/reference/get/search/tweets
 	 * @param  string|array
-	 * @param  bool  return complete response?
-	 * @return stdClass  see https://dev.twitter.com/rest/reference/get/search/tweets
 	 * @throws Exception
 	 */
-	public function search($query, $full = false)
+	public function search($query, bool $full = false): stdClass
 	{
 		$res = $this->request('search/tweets', 'GET', is_array($query) ? $query : ['q' => $query]);
 		return $full ? $res : $res->statuses;
@@ -261,14 +246,11 @@ class Twitter
 
 	/**
 	 * Process HTTP request.
-	 * @param  string  URL or twitter command
-	 * @param  string  HTTP method GET or POST or JSONPOST
-	 * @param  array   data
-	 * @param  array   uploaded files
+	 * @param  string  $method  GET|POST|JSONPOST
 	 * @return stdClass|stdClass[]
 	 * @throws Exception
 	 */
-	public function request($resource, $method, array $data = null, array $files = null)
+	public function request(string $resource, string $method, array $data = null, array $files = null)
 	{
 		if (!strpos($resource, '://')) {
 			if (!strpos($resource, '.')) {
@@ -347,12 +329,9 @@ class Twitter
 
 	/**
 	 * Cached HTTP request.
-	 * @param  string  URL or twitter command
-	 * @param  array
-	 * @param  int
 	 * @return stdClass|stdClass[]
 	 */
-	public function cachedRequest($resource, array $data = null, $cacheExpire = null)
+	public function cachedRequest(string $resource, array $data = null, $cacheExpire = null)
 	{
 		if (!self::$cacheDir) {
 			return $this->request($resource, 'GET', $data);
@@ -388,9 +367,8 @@ class Twitter
 
 	/**
 	 * Makes twitter links, @usernames and #hashtags clickable.
-	 * @return string
 	 */
-	public static function clickable(stdClass $status)
+	public static function clickable(stdClass $status): string
 	{
 		$all = [];
 		foreach ($status->entities->hashtags as $item) {

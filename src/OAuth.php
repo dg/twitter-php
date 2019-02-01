@@ -39,7 +39,7 @@ class Consumer
 	public $secret;
 
 
-	public function __construct($key, $secret, $callback_url = null)
+	public function __construct(string $key, string $secret, $callback_url = null)
 	{
 		$this->key = $key;
 		$this->secret = $secret;
@@ -47,7 +47,7 @@ class Consumer
 	}
 
 
-	public function __toString()
+	public function __toString(): string
 	{
 		return "OAuthConsumer[key=$this->key,secret=$this->secret]";
 	}
@@ -64,7 +64,7 @@ class Token
 	 * key = the token
 	 * secret = the token secret
 	 */
-	public function __construct($key, $secret)
+	public function __construct(string $key, string $secret)
 	{
 		$this->key = $key;
 		$this->secret = $secret;
@@ -75,7 +75,7 @@ class Token
 	 * generates the basic string serialization of a token that a server
 	 * would respond to request_token and access_token calls with
 	 */
-	public function to_string()
+	public function to_string(): string
 	{
 		return 'oauth_token=' .
 					Util::urlencode_rfc3986($this->key) .
@@ -84,7 +84,7 @@ class Token
 	}
 
 
-	public function __toString()
+	public function __toString(): string
 	{
 		return $this->to_string();
 	}
@@ -98,9 +98,8 @@ abstract class SignatureMethod
 {
 	/**
 	 * Needs to return the name of the Signature Method (ie HMAC-SHA1)
-	 * @return string
 	 */
-	abstract public function get_name();
+	abstract public function get_name(): string;
 
 
 	/**
@@ -108,23 +107,14 @@ abstract class SignatureMethod
 	 * NOTE: The output of this function MUST NOT be urlencoded.
 	 * the encoding is handled in OAuthRequest when the final
 	 * request is serialized
-	 * @param Request $request
-	 * @param Consumer $consumer
-	 * @param Token $token
-	 * @return string
 	 */
-	abstract public function build_signature($request, $consumer, $token);
+	abstract public function build_signature(Request $request, Consumer $consumer, Token $token): string;
 
 
 	/**
 	 * Verifies that a given signature is correct
-	 * @param Request $request
-	 * @param Consumer $consumer
-	 * @param Token $token
-	 * @param string $signature
-	 * @return bool
 	 */
-	public function check_signature($request, $consumer, $token, $signature)
+	public function check_signature(Request $request, Consumer $consumer, Token $token, string $signature): bool
 	{
 		$built = $this->build_signature($request, $consumer, $token);
 		return $built == $signature;
@@ -140,13 +130,13 @@ abstract class SignatureMethod
  */
 class SignatureMethod_HMAC_SHA1 extends SignatureMethod
 {
-	public function get_name()
+	public function get_name(): string
 	{
 		return 'HMAC-SHA1';
 	}
 
 
-	public function build_signature($request, $consumer, $token)
+	public function build_signature(Request $request, Consumer $consumer, Token $token): string
 	{
 		$base_string = $request->get_signature_base_string();
 		$request->base_string = $base_string;
@@ -170,7 +160,7 @@ class SignatureMethod_HMAC_SHA1 extends SignatureMethod
  */
 class SignatureMethod_PLAINTEXT extends SignatureMethod
 {
-	public function get_name()
+	public function get_name(): string
 	{
 		return 'PLAINTEXT';
 	}
@@ -185,7 +175,7 @@ class SignatureMethod_PLAINTEXT extends SignatureMethod
 	 * Please note that the second encoding MUST NOT happen in the SignatureMethod, as
 	 * OAuthRequest handles this!
 	 */
-	public function build_signature($request, $consumer, $token)
+	public function build_signature(Request $request, Consumer $consumer, Token $token): string
 	{
 		$key_parts = [
 			$consumer->secret,
@@ -210,7 +200,7 @@ class SignatureMethod_PLAINTEXT extends SignatureMethod
  */
 abstract class SignatureMethod_RSA_SHA1 extends SignatureMethod
 {
-	public function get_name()
+	public function get_name(): string
 	{
 		return 'RSA-SHA1';
 	}
@@ -232,7 +222,7 @@ abstract class SignatureMethod_RSA_SHA1 extends SignatureMethod
 	abstract protected function fetch_private_cert(&$request);
 
 
-	public function build_signature($request, $consumer, $token)
+	public function build_signature(Request $request, Consumer $consumer, Token $token): string
 	{
 		$base_string = $request->get_signature_base_string();
 		$request->base_string = $base_string;
@@ -253,7 +243,7 @@ abstract class SignatureMethod_RSA_SHA1 extends SignatureMethod
 	}
 
 
-	public function check_signature($request, $consumer, $token, $signature)
+	public function check_signature(Request $request, Consumer $consumer, Token $token, string $signature): bool
 	{
 		$decoded_sig = base64_decode($signature, true);
 
@@ -286,7 +276,7 @@ class Request
 	protected $http_url;
 
 
-	public function __construct($http_method, $http_url, $parameters = null)
+	public function __construct(string $http_method, string $http_url, array $parameters = null)
 	{
 		$parameters = ($parameters) ? $parameters : [];
 		$parameters = array_merge(Util::parse_parameters((string) parse_url($http_url, PHP_URL_QUERY)), $parameters);
@@ -299,7 +289,7 @@ class Request
 	/**
 	 * attempt to build up a request from what was passed to the server
 	 */
-	public static function from_request($http_method = null, $http_url = null, $parameters = null)
+	public static function from_request(string $http_method = null, string $http_url = null, array $parameters = null): self
 	{
 		$scheme = (!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] != 'on')
 							? 'http'
@@ -352,7 +342,7 @@ class Request
 	/**
 	 * pretty much a helper function to set up the request
 	 */
-	public static function from_consumer_and_token($consumer, $token, $http_method, $http_url, $parameters = null)
+	public static function from_consumer_and_token(Consumer $consumer, Token $token, string $http_method, string $http_url, array $parameters = null): self
 	{
 		$parameters = ($parameters) ? $parameters : [];
 		$defaults = ['oauth_version' => self::$version,
@@ -369,7 +359,7 @@ class Request
 	}
 
 
-	public function set_parameter($name, $value, $allow_duplicates = true)
+	public function set_parameter(string $name, $value, bool $allow_duplicates = true): void
 	{
 		if ($allow_duplicates && isset($this->parameters[$name])) {
 			// We have already added parameter(s) with this name, so add to the list
@@ -386,19 +376,19 @@ class Request
 	}
 
 
-	public function get_parameter($name)
+	public function get_parameter(string $name)
 	{
 		return isset($this->parameters[$name]) ? $this->parameters[$name] : null;
 	}
 
 
-	public function get_parameters()
+	public function get_parameters(): array
 	{
 		return $this->parameters;
 	}
 
 
-	public function unset_parameter($name)
+	public function unset_parameter(string $name): void
 	{
 		unset($this->parameters[$name]);
 	}
@@ -406,9 +396,8 @@ class Request
 
 	/**
 	 * The request parameters, sorted and concatenated into a normalized string.
-	 * @return string
 	 */
-	public function get_signable_parameters()
+	public function get_signable_parameters(): string
 	{
 		// Grab all parameters
 		$params = $this->parameters;
@@ -430,7 +419,7 @@ class Request
 	 * and the parameters (normalized), each urlencoded
 	 * and the concated with &.
 	 */
-	public function get_signature_base_string()
+	public function get_signature_base_string(): string
 	{
 		$parts = [
 			$this->get_normalized_http_method(),
@@ -447,7 +436,7 @@ class Request
 	/**
 	 * just uppercases the http method
 	 */
-	public function get_normalized_http_method()
+	public function get_normalized_http_method(): string
 	{
 		return strtoupper($this->http_method);
 	}
@@ -457,7 +446,7 @@ class Request
 	 * parses the url and rebuilds it to be
 	 * scheme://host/path
 	 */
-	public function get_normalized_http_url()
+	public function get_normalized_http_url(): string
 	{
 		$parts = parse_url($this->http_url);
 
@@ -477,7 +466,7 @@ class Request
 	/**
 	 * builds a url usable for a GET request
 	 */
-	public function to_url()
+	public function to_url(): string
 	{
 		$post_data = $this->to_postdata();
 		$out = $this->get_normalized_http_url();
@@ -491,7 +480,7 @@ class Request
 	/**
 	 * builds the data one would send in a POST request
 	 */
-	public function to_postdata()
+	public function to_postdata(): string
 	{
 		return Util::build_http_query($this->parameters);
 	}
@@ -500,7 +489,7 @@ class Request
 	/**
 	 * builds the Authorization: header
 	 */
-	public function to_header($realm = null)
+	public function to_header(string $realm = null): string
 	{
 		$first = true;
 		if ($realm) {
@@ -529,13 +518,13 @@ class Request
 	}
 
 
-	public function __toString()
+	public function __toString(): string
 	{
 		return $this->to_url();
 	}
 
 
-	public function sign_request($signature_method, $consumer, $token)
+	public function sign_request(SignatureMethod $signature_method, Consumer $consumer, Token $token)
 	{
 		$this->set_parameter(
 			'oauth_signature_method',
@@ -547,7 +536,7 @@ class Request
 	}
 
 
-	public function build_signature($signature_method, $consumer, $token)
+	public function build_signature(SignatureMethod $signature_method, Consumer $consumer, Token $token)
 	{
 		$signature = $signature_method->build_signature($this, $consumer, $token);
 		return $signature;
@@ -557,7 +546,7 @@ class Request
 	/**
 	 * util function: current timestamp
 	 */
-	private static function generate_timestamp()
+	private static function generate_timestamp(): int
 	{
 		return time();
 	}
@@ -566,7 +555,7 @@ class Request
 	/**
 	 * util function: current nonce
 	 */
-	private static function generate_nonce()
+	private static function generate_nonce(): string
 	{
 		$mt = microtime();
 		$rand = mt_rand();
@@ -599,7 +588,7 @@ class Util
 	// This decode function isn't taking into consideration the above
 	// modifications to the encoding process. However, this method doesn't
 	// seem to be used anywhere so leaving it as is.
-	public static function urldecode_rfc3986($string)
+	public static function urldecode_rfc3986(string $string): string
 	{
 		return urldecode($string);
 	}
@@ -610,7 +599,7 @@ class Util
 	// Can filter out any non-oauth parameters if needed (default behaviour)
 	// May 28th, 2010 - method updated to tjerk.meesters for a speed improvement.
 	//                  see http://code.google.com/p/oauth/issues/detail?id=163
-	public static function split_header($header, $only_allow_oauth_parameters = true)
+	public static function split_header(string $header, bool $only_allow_oauth_parameters = true): array
 	{
 		$params = [];
 		if (preg_match_all('/(' . ($only_allow_oauth_parameters ? 'oauth_' : '') . '[a-z_-]*)=(:?"([^"]*)"|([^,]*))/', $header, $matches)) {
@@ -626,7 +615,7 @@ class Util
 
 
 	// helper to try to sort out headers for people who aren't running apache
-	public static function get_headers()
+	public static function get_headers(): array
 	{
 		if (function_exists('apache_request_headers')) {
 			// we need this to get the actual Authorization: header
@@ -678,7 +667,7 @@ class Util
 	// This function takes a input like a=b&a=c&d=e and returns the parsed
 	// parameters like this
 	// ['a' => array('b','c'), 'd' => 'e']
-	public static function parse_parameters($input)
+	public static function parse_parameters(string $input): array
 	{
 		if (!isset($input) || !$input) {
 			return [];
@@ -711,7 +700,7 @@ class Util
 	}
 
 
-	public static function build_http_query($params)
+	public static function build_http_query(array $params): string
 	{
 		if (!$params) {
 			return '';
