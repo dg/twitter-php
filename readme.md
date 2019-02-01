@@ -118,6 +118,11 @@ $statuses = $twitter->request('statuses/retweets_of_me', 'GET', ['count' => 20])
 
 Changelog
 ---------
+v4.0 (2/2019)
+- requires PHP 7.1 and uses its advantages like typehints, strict types etc.
+- class Twitter is now DG\Twitter\Twitter
+- class TwitterException is now DG\Twitter\Exception
+
 v3.8 (2/2019)
 - Twitter::sendDirectMessage() uses new API
 - Twitter::clickable: added support for $status->full_text (#60)
