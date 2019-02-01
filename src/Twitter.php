@@ -43,10 +43,10 @@ class Twitter
 		CURLOPT_USERAGENT => 'Twitter for PHP',
 	];
 
-	/** @var \Twitter_OAuthConsumer */
+	/** @var OAuth\Consumer */
 	private $consumer;
 
-	/** @var \Twitter_OAuthConsumer */
+	/** @var OAuth\Token */
 	private $token;
 
 
@@ -64,8 +64,8 @@ class Twitter
 			throw new Exception('PHP extension CURL is not loaded.');
 		}
 
-		$this->consumer = new \Twitter_OAuthConsumer($consumerKey, $consumerSecret);
-		$this->token = new \Twitter_OAuthConsumer($accessToken, $accessTokenSecret);
+		$this->consumer = new OAuth\Consumer($consumerKey, $consumerSecret);
+		$this->token = new OAuth\Token($accessToken, $accessTokenSecret);
 	}
 
 
@@ -301,8 +301,8 @@ class Twitter
 			$resource .= '?' . http_build_query($data, '', '&');
 		}
 
-		$request = \Twitter_OAuthRequest::from_consumer_and_token($this->consumer, $this->token, $method, $resource);
-		$request->sign_request(new \Twitter_OAuthSignatureMethod_HMAC_SHA1, $this->consumer, $this->token);
+		$request = OAuth\Request::from_consumer_and_token($this->consumer, $this->token, $method, $resource);
+		$request->sign_request(new OAuth\SignatureMethod_HMAC_SHA1, $this->consumer, $this->token);
 		$headers[] = $request->to_header();
 
 		$options = [
