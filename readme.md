@@ -24,6 +24,8 @@ token. Now you have consumer key, consumer secret, access token and access token
 Create object using application and request/access keys
 
 ```php
+use DG\Twitter\Twitter;
+
 $twitter = new Twitter($consumerKey, $consumerSecret, $accessToken, $accessTokenSecret);
 ```
 
@@ -82,12 +84,12 @@ The returned result is a again array of statuses.
 Error handling
 --------------
 
-All methods throw a TwitterException on error:
+All methods throw a `DG\Twitter\Exception` on error:
 
 ```php
 try {
 	$statuses = $twitter->load(Twitter::ME);
-} catch (TwitterException $e) {
+} catch (DG\Twitter\Exception $e) {
 	echo "Error: ", $e->getMessage();
 }
 ```
