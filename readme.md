@@ -116,6 +116,10 @@ $statuses = $twitter->request('statuses/retweets_of_me', 'GET', ['count' => 20])
 
 Changelog
 ---------
+v3.8 (2/2019)
+- Twitter::sendDirectMessage() uses new API
+- Twitter::clickable: added support for $status->full_text (#60)
+
 v3.7 (3/2018)
 - minimal required PHP version changed to 5.4
 - Twitter::send() added $options
