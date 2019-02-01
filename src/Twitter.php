@@ -123,9 +123,15 @@ class Twitter
 	public function sendDirectMessage($username, $message)
 	{
 		return $this->request(
-			'direct_messages/new',
+			'direct_messages/events/new',
 			'POST',
-			['text' => $message, 'screen_name' => $username]
+			['event' => [
+				'type' => 'message_create',
+				'message_create' => [
+					'target' => ['recipient_id' => $this->loadUserInfo($username)->id_str],
+					'message_data' => ['text' => $message],
+				],
+			]]
 		);
 	}
 
