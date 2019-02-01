@@ -41,11 +41,10 @@ class Consumer
 	public $secret;
 
 
-	public function __construct(string $key, string $secret, $callback_url = null)
+	public function __construct(string $key, string $secret)
 	{
 		$this->key = $key;
 		$this->secret = $secret;
-		$this->callback_url = $callback_url;
 	}
 
 
