@@ -1,5 +1,7 @@
 <?php
 
+use DG\Twitter\Twitter;
+
 require_once '../src/twitter.class.php';
 
 // enables caching (path must exists and must be writable!)

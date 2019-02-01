@@ -1,5 +1,7 @@
 <?php
 
+use DG\Twitter\Twitter;
+
 require_once '../src/twitter.class.php';
 
 // ENTER HERE YOUR CREDENTIALS (see readme.txt)

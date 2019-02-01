@@ -1,5 +1,7 @@
 <?php
 
+use DG\Twitter\Twitter;
+
 require_once '../src/twitter.class.php';
 
 // ENTER HERE YOUR CREDENTIALS (see readme.txt)
@@ -8,6 +10,6 @@ $twitter = new Twitter($consumerKey, $consumerSecret, $accessToken, $accessToken
 try {
 	$tweet = $twitter->send('I am fine'); // you can add $imagePath or array of image paths as second argument
 
-} catch (TwitterException $e) {
+} catch (DG\Twitter\TwitterException $e) {
 	echo 'Error: ' . $e->getMessage();
 }
