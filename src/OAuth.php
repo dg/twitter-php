@@ -28,12 +28,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-/* Generic exception class
+/**
+ * Generic exception class
  */
 class Exception extends \Exception
 {
 	// pass
 }
+
 
 class Consumer
 {
@@ -41,11 +43,10 @@ class Consumer
 	public $secret;
 
 
-	public function __construct(string $key, string $secret, $callback_url = null)
+	public function __construct(string $key, string $secret)
 	{
 		$this->key = $key;
 		$this->secret = $secret;
-		$this->callback_url = $callback_url;
 	}
 
 
@@ -54,6 +55,7 @@ class Consumer
 		return "OAuthConsumer[key=$this->key,secret=$this->secret]";
 	}
 }
+
 
 class Token
 {
@@ -80,9 +82,9 @@ class Token
 	public function to_string(): string
 	{
 		return 'oauth_token=' .
-					Util::urlencode_rfc3986($this->key) .
-					'&oauth_token_secret=' .
-					Util::urlencode_rfc3986($this->secret);
+			Util::urlencode_rfc3986($this->key) .
+			'&oauth_token_secret=' .
+			Util::urlencode_rfc3986($this->secret);
 	}
 
 
@@ -91,6 +93,7 @@ class Token
 		return $this->to_string();
 	}
 }
+
 
 /**
  * A class for implementing a Signature Method
@@ -123,6 +126,7 @@ abstract class SignatureMethod
 	}
 }
 
+
 /**
  * The HMAC-SHA1 signature method uses the HMAC-SHA1 signature algorithm as defined in [RFC2104]
  * where the Signature Base String is the text and the key is the concatenated values (each first
@@ -145,7 +149,7 @@ class SignatureMethod_HMAC_SHA1 extends SignatureMethod
 
 		$key_parts = [
 			$consumer->secret,
-			($token) ? $token->secret : '',
+			$token ? $token->secret : '',
 		];
 
 		$key_parts = Util::urlencode_rfc3986($key_parts);
@@ -154,6 +158,7 @@ class SignatureMethod_HMAC_SHA1 extends SignatureMethod
 		return base64_encode(hash_hmac('sha1', $base_string, $key, true));
 	}
 }
+
 
 /**
  * The PLAINTEXT method does not provide any security protection and SHOULD only be used
@@ -181,7 +186,7 @@ class SignatureMethod_PLAINTEXT extends SignatureMethod
 	{
 		$key_parts = [
 			$consumer->secret,
-			($token) ? $token->secret : '',
+			$token ? $token->secret : '',
 		];
 
 		$key_parts = Util::urlencode_rfc3986($key_parts);
@@ -191,6 +196,7 @@ class SignatureMethod_PLAINTEXT extends SignatureMethod
 		return $key;
 	}
 }
+
 
 /**
  * The RSA-SHA1 signature method uses the RSASSA-PKCS1-v1_5 signature algorithm as defined in
@@ -208,19 +214,23 @@ abstract class SignatureMethod_RSA_SHA1 extends SignatureMethod
 	}
 
 
-	// Up to the SP to implement this lookup of keys. Possible ideas are:
-	// (1) do a lookup in a table of trusted certs keyed off of consumer
-	// (2) fetch via http using a url provided by the requester
-	// (3) some sort of specific discovery code based on request
-	//
-	// Either way should return a string representation of the certificate
+	/**
+	 * Up to the SP to implement this lookup of keys. Possible ideas are:
+	 * (1) do a lookup in a table of trusted certs keyed off of consumer
+	 * (2) fetch via http using a url provided by the requester
+	 * (3) some sort of specific discovery code based on request
+	 *
+	 * Either way should return a string representation of the certificate
+	 */
 	abstract protected function fetch_public_cert(&$request);
 
 
-	// Up to the SP to implement this lookup of keys. Possible ideas are:
-	// (1) do a lookup in a table of trusted certs keyed off of consumer
-	//
-	// Either way should return a string representation of the certificate
+	/**
+	 * Up to the SP to implement this lookup of keys. Possible ideas are:
+	 * (1) do a lookup in a table of trusted certs keyed off of consumer
+	 *
+	 * Either way should return a string representation of the certificate
+	 */
 	abstract protected function fetch_private_cert(&$request);
 
 
@@ -267,6 +277,7 @@ abstract class SignatureMethod_RSA_SHA1 extends SignatureMethod
 	}
 }
 
+
 class Request
 {
 	// for debug purposes
@@ -280,7 +291,7 @@ class Request
 
 	public function __construct(string $http_method, string $http_url, array $parameters = null)
 	{
-		$parameters = ($parameters) ? $parameters : [];
+		$parameters = $parameters ?: [];
 		$parameters = array_merge(Util::parse_parameters((string) parse_url($http_url, PHP_URL_QUERY)), $parameters);
 		$this->parameters = $parameters;
 		$this->http_method = $http_method;
@@ -294,13 +305,13 @@ class Request
 	public static function from_request(string $http_method = null, string $http_url = null, array $parameters = null): self
 	{
 		$scheme = (!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] != 'on')
-							? 'http'
-							: 'https';
+			? 'http'
+			: 'https';
 		$http_url = ($http_url) ? $http_url : $scheme .
-															'://' . $_SERVER['HTTP_HOST'] .
-															':' .
-															$_SERVER['SERVER_PORT'] .
-															$_SERVER['REQUEST_URI'];
+			'://' . $_SERVER['HTTP_HOST'] .
+			':' .
+			$_SERVER['SERVER_PORT'] .
+			$_SERVER['REQUEST_URI'];
 		$http_method = ($http_method) ? $http_method : $_SERVER['REQUEST_METHOD'];
 
 		// We weren't handed any parameters, so let's find the ones relevant to
@@ -317,10 +328,9 @@ class Request
 			// It's a POST request of the proper content-type, so parse POST
 			// parameters and add those overriding any duplicates from GET
 			if ($http_method == 'POST'
-					&& isset($request_headers['Content-Type'])
-					&& strstr($request_headers['Content-Type'],
-										'application/x-www-form-urlencoded')
-					) {
+				&& isset($request_headers['Content-Type'])
+				&& strstr($request_headers['Content-Type'], 'application/x-www-form-urlencoded')
+			) {
 				$post_data = Util::parse_parameters(
 					file_get_contents(self::$POST_INPUT)
 				);
@@ -346,11 +356,13 @@ class Request
 	 */
 	public static function from_consumer_and_token(Consumer $consumer, Token $token, string $http_method, string $http_url, array $parameters = null): self
 	{
-		$parameters = ($parameters) ? $parameters : [];
-		$defaults = ['oauth_version' => self::$version,
-											'oauth_nonce' => self::generate_nonce(),
-											'oauth_timestamp' => self::generate_timestamp(),
-											'oauth_consumer_key' => $consumer->key, ];
+		$parameters = $parameters ?: [];
+		$defaults = [
+			'oauth_version' => self::$version,
+			'oauth_nonce' => self::generate_nonce(),
+			'oauth_timestamp' => self::generate_timestamp(),
+			'oauth_consumer_key' => $consumer->key,
+		];
 		if ($token) {
 			$defaults['oauth_token'] = $token->key;
 		}
@@ -509,11 +521,8 @@ class Request
 			if (is_array($v)) {
 				throw new Exception('Arrays not supported in headers');
 			}
-			$out .= ($first) ? ' ' : ',';
-			$out .= Util::urlencode_rfc3986($k) .
-							'="' .
-							Util::urlencode_rfc3986($v) .
-							'"';
+			$out .= $first ? ' ' : ',';
+			$out .= Util::urlencode_rfc3986($k) . '="' . Util::urlencode_rfc3986($v) . '"';
 			$first = false;
 		}
 		return $out;
@@ -573,34 +582,30 @@ class Util
 	{
 		if (is_array($input)) {
 			return array_map([__CLASS__, 'urlencode_rfc3986'], $input);
+		} elseif (is_scalar($input)) {
+			return str_replace('+', ' ', str_replace('%7E', '~', rawurlencode((string) $input)));
 		} else {
-			if (is_scalar($input)) {
-				return str_replace(
-				'+',
-				' ',
-				str_replace('%7E', '~', rawurlencode((string) $input))
-			);
-			} else {
-				return '';
-			}
+			return '';
 		}
 	}
 
 
-	// This decode function isn't taking into consideration the above
-	// modifications to the encoding process. However, this method doesn't
-	// seem to be used anywhere so leaving it as is.
+	/**
+	 * This decode function isn't taking into consideration the above
+	 * modifications to the encoding process. However, this method doesn't
+	 * seem to be used anywhere so leaving it as is.
+	 */
 	public static function urldecode_rfc3986(string $string): string
 	{
 		return urldecode($string);
 	}
 
 
-	// Utility function for turning the Authorization: header into
-	// parameters, has to do some unescaping
-	// Can filter out any non-oauth parameters if needed (default behaviour)
-	// May 28th, 2010 - method updated to tjerk.meesters for a speed improvement.
-	//                  see http://code.google.com/p/oauth/issues/detail?id=163
+	/**
+	 * Utility function for turning the Authorization: header into
+	 * parameters, has to do some unescaping
+	 * Can filter out any non-oauth parameters if needed (default behaviour)
+	 */
 	public static function split_header(string $header, bool $only_allow_oauth_parameters = true): array
 	{
 		$params = [];
@@ -616,7 +621,9 @@ class Util
 	}
 
 
-	// helper to try to sort out headers for people who aren't running apache
+	/**
+	 * helper to try to sort out headers for people who aren't running apache
+	 */
 	public static function get_headers(): array
 	{
 		if (function_exists('apache_request_headers')) {
@@ -631,10 +638,10 @@ class Util
 			$out = [];
 			foreach ($headers as $key => $value) {
 				$key = str_replace(
-						' ',
-						'-',
-						ucwords(strtolower(str_replace('-', ' ', $key)))
-					);
+					' ',
+					'-',
+					ucwords(strtolower(str_replace('-', ' ', $key)))
+				);
 				$out[$key] = $value;
 			}
 		} else {
@@ -666,9 +673,10 @@ class Util
 	}
 
 
-	// This function takes a input like a=b&a=c&d=e and returns the parsed
-	// parameters like this
-	// ['a' => array('b','c'), 'd' => 'e']
+	/**
+	 * This function takes a input like a=b&a=c&d=e and returns the parsed parameters like this
+	 * ['a' => array('b','c'), 'd' => 'e']
+	 */
 	public static function parse_parameters(string $input): array
 	{
 		if (!isset($input) || !$input) {
