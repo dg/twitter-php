@@ -577,7 +577,7 @@ class Util
 				return str_replace(
 				'+',
 				' ',
-				str_replace('%7E', '~', rawurlencode($input))
+				str_replace('%7E', '~', rawurlencode((string) $input))
 			);
 			} else {
 				return '';
