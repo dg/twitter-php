@@ -274,13 +274,9 @@ class Twitter
 			$resource = self::API_URL . $resource;
 		}
 
-		$hasCURLFile = class_exists('CURLFile', false) && defined('CURLOPT_SAFE_UPLOAD');
-
 		foreach ((array) $data as $key => $val) {
 			if ($val === null) {
 				unset($data[$key]);
-			} elseif ($files && !$hasCURLFile && substr($val, 0, 1) === '@') {
-				throw new TwitterException('Due to limitation of cURL it is not possible to send message starting with @ and upload file at the same time in PHP < 5.5');
 			}
 		}
 
@@ -288,7 +284,7 @@ class Twitter
 			if (!is_file($file)) {
 				throw new TwitterException("Cannot read the file $file. Check if file exists on disk and check its permissions.");
 			}
-			$data[$key] = $hasCURLFile ? new CURLFile($file) : '@' . $file;
+			$data[$key] = new CURLFile($file);
 		}
 
 		$headers = ['Expect:'];
@@ -316,10 +312,8 @@ class Twitter
 			$options += [
 				CURLOPT_POST => true,
 				CURLOPT_POSTFIELDS => $data,
+				CURLOPT_SAFE_UPLOAD => true,
 			];
-			if ($hasCURLFile) {
-				$options[CURLOPT_SAFE_UPLOAD] = true;
-			}
 		}
 
 		$curl = curl_init();
@@ -329,9 +323,7 @@ class Twitter
 			throw new TwitterException('Server error: ' . curl_error($curl));
 		}
 
-		$payload = defined('JSON_BIGINT_AS_STRING')
-			? @json_decode($result, false, 128, JSON_BIGINT_AS_STRING)
-			: @json_decode($result); // intentionally @
+		$payload = @json_decode($result, false, 128, JSON_BIGINT_AS_STRING); // intentionally @
 
 		if ($payload === false) {
 			throw new TwitterException('Invalid server response');
