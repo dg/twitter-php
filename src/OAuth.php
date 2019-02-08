@@ -289,7 +289,7 @@ class Request
 	public function __construct($http_method, $http_url, $parameters = null)
 	{
 		$parameters = ($parameters) ? $parameters : [];
-		$parameters = array_merge(Util::parse_parameters(parse_url($http_url, PHP_URL_QUERY)), $parameters);
+		$parameters = array_merge(Util::parse_parameters((string) parse_url($http_url, PHP_URL_QUERY)), $parameters);
 		$this->parameters = $parameters;
 		$this->http_method = $http_method;
 		$this->http_url = $http_url;
@@ -587,7 +587,7 @@ class Util
 				return str_replace(
 				'+',
 				' ',
-				str_replace('%7E', '~', rawurlencode($input))
+				str_replace('%7E', '~', rawurlencode((string) $input))
 			);
 			} else {
 				return '';
