@@ -21,14 +21,12 @@ use stdClass;
  */
 class Twitter
 {
-	const API_URL = 'https://api.twitter.com/1.1/';
+	public const ME = 1;
+	public const ME_AND_FRIENDS = 2;
+	public const REPLIES = 3;
+	public const RETWEETS = 128; // include retweets?
 
-	/**#@+ Timeline {@link Twitter::load()} */
-	const ME = 1;
-	const ME_AND_FRIENDS = 2;
-	const REPLIES = 3;
-	const RETWEETS = 128; // include retweets?
-	/**#@-*/
+	private const API_URL = 'https://api.twitter.com/1.1/';
 
 	/** @var int */
 	public static $cacheExpire = '30 minutes';
