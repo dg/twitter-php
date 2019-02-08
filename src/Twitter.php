@@ -122,9 +122,15 @@ class Twitter
 	public function sendDirectMessage($username, $message)
 	{
 		return $this->request(
-			'direct_messages/new',
-			'POST',
-			['text' => $message, 'screen_name' => $username]
+			'direct_messages/events/new',
+			'JSONPOST',
+			['event' => [
+				'type' => 'message_create',
+				'message_create' => [
+					'target' => ['recipient_id' => $this->loadUserInfo($username)->id_str],
+					'message_data' => ['text' => $message],
+				],
+			]]
 		);
 	}
 
@@ -253,7 +259,7 @@ class Twitter
 	/**
 	 * Process HTTP request.
 	 * @param  string  URL or twitter command
-	 * @param  string  HTTP method GET or POST
+	 * @param  string  HTTP method GET or POST or JSONPOST
 	 * @param  array   data
 	 * @param  array   uploaded files
 	 * @return stdClass|stdClass[]
@@ -287,7 +293,12 @@ class Twitter
 
 		$headers = ['Expect:'];
 
-		if ($method === 'GET' && $data) {
+		if ($method === 'JSONPOST') {
+			$method = 'POST';
+			$data = json_encode($data);
+			$headers[] = 'Content-Type: application/json';
+
+		} elseif ($method === 'GET' && $data) {
 			$resource .= '?' . http_build_query($data, '', '&');
 		}
 
