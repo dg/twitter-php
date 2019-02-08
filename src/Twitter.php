@@ -37,7 +37,6 @@ class Twitter
 	public $httpOptions = [
 		CURLOPT_TIMEOUT => 20,
 		CURLOPT_SSL_VERIFYPEER => 0,
-		CURLOPT_HTTPHEADER => ['Expect:'],
 		CURLOPT_USERAGENT => 'Twitter for PHP',
 	];
 
@@ -286,22 +285,30 @@ class Twitter
 			$data[$key] = $hasCURLFile ? new CURLFile($file) : '@' . $file;
 		}
 
-		$request = Twitter_OAuthRequest::from_consumer_and_token($this->consumer, $this->token, $method, $resource, $files ? [] : $data);
+		$headers = ['Expect:'];
+
+		if ($method === 'GET' && $data) {
+			$resource .= '?' . http_build_query($data, '', '&');
+		}
+
+		$request = Twitter_OAuthRequest::from_consumer_and_token($this->consumer, $this->token, $method, $resource);
 		$request->sign_request(new Twitter_OAuthSignatureMethod_HMAC_SHA1, $this->consumer, $this->token);
+		$headers[] = $request->to_header();
 
 		$options = [
+			CURLOPT_URL => $resource,
 			CURLOPT_HEADER => false,
 			CURLOPT_RETURNTRANSFER => true,
-		] + ($method === 'POST' ? [
-			CURLOPT_POST => true,
-			CURLOPT_POSTFIELDS => $files ? $data : $request->to_postdata(),
-			CURLOPT_URL => $files ? $request->to_url() : $request->get_normalized_http_url(),
-		] : [
-			CURLOPT_URL => $request->to_url(),
-		]) + $this->httpOptions;
-
-		if ($method === 'POST' && $hasCURLFile) {
-			$options[CURLOPT_SAFE_UPLOAD] = true;
+			CURLOPT_HTTPHEADER => $headers,
+		] + $this->httpOptions;
+		if ($method === 'POST') {
+			$options += [
+				CURLOPT_POST => true,
+				CURLOPT_POSTFIELDS => $data,
+			];
+			if ($hasCURLFile) {
+				$options[CURLOPT_SAFE_UPLOAD] = true;
+			}
 		}
 
 		$curl = curl_init();
