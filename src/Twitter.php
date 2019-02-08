@@ -97,7 +97,7 @@ class Twitter
 			$res = $this->request(
 				'https://upload.twitter.com/1.1/media/upload.json',
 				'POST',
-				null,
+				[],
 				['media' => $item]
 			);
 			$mediaIds[] = $res->media_id_string;
@@ -250,7 +250,7 @@ class Twitter
 	 * @return stdClass|stdClass[]
 	 * @throws Exception
 	 */
-	public function request(string $resource, string $method, array $data = null, array $files = null)
+	public function request(string $resource, string $method, array $data = [], array $files = [])
 	{
 		if (!strpos($resource, '://')) {
 			if (!strpos($resource, '.')) {
@@ -259,13 +259,13 @@ class Twitter
 			$resource = self::API_URL . $resource;
 		}
 
-		foreach ((array) $data as $key => $val) {
+		foreach ($data as $key => $val) {
 			if ($val === null) {
 				unset($data[$key]);
 			}
 		}
 
-		foreach ((array) $files as $key => $file) {
+		foreach ($files as $key => $file) {
 			if (!is_file($file)) {
 				throw new Exception("Cannot read the file $file. Check if file exists on disk and check its permissions.");
 			}
@@ -331,7 +331,7 @@ class Twitter
 	 * Cached HTTP request.
 	 * @return stdClass|stdClass[]
 	 */
-	public function cachedRequest(string $resource, array $data = null, $cacheExpire = null)
+	public function cachedRequest(string $resource, array $data = [], $cacheExpire = null)
 	{
 		if (!self::$cacheDir) {
 			return $this->request($resource, 'GET', $data);
