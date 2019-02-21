@@ -36,7 +36,7 @@ $twitter->send('I am fine today.');
 ```
 
 The load() method returns the 20 most recent status updates
-posted in the last 24 hours by you:
+posted by you:
 
 ```php
 $statuses = $twitter->load(Twitter::ME);
