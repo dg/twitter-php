@@ -113,7 +113,7 @@ abstract class SignatureMethod
 	 * the encoding is handled in OAuthRequest when the final
 	 * request is serialized
 	 */
-	abstract public function build_signature(Request $request, Consumer $consumer, Token $token): string;
+	abstract public function build_signature(Request $request, Consumer $consumer, ?Token $token): string;
 
 
 	/**
@@ -142,7 +142,7 @@ class SignatureMethod_HMAC_SHA1 extends SignatureMethod
 	}
 
 
-	public function build_signature(Request $request, Consumer $consumer, Token $token): string
+	public function build_signature(Request $request, Consumer $consumer, ?Token $token): string
 	{
 		$base_string = $request->get_signature_base_string();
 		$request->base_string = $base_string;
@@ -182,7 +182,7 @@ class SignatureMethod_PLAINTEXT extends SignatureMethod
 	 * Please note that the second encoding MUST NOT happen in the SignatureMethod, as
 	 * OAuthRequest handles this!
 	 */
-	public function build_signature(Request $request, Consumer $consumer, Token $token): string
+	public function build_signature(Request $request, Consumer $consumer, ?Token $token): string
 	{
 		$key_parts = [
 			$consumer->secret,
@@ -234,7 +234,7 @@ abstract class SignatureMethod_RSA_SHA1 extends SignatureMethod
 	abstract protected function fetch_private_cert(&$request);
 
 
-	public function build_signature(Request $request, Consumer $consumer, Token $token): string
+	public function build_signature(Request $request, Consumer $consumer, ?Token $token): string
 	{
 		$base_string = $request->get_signature_base_string();
 		$request->base_string = $base_string;
@@ -354,7 +354,7 @@ class Request
 	/**
 	 * pretty much a helper function to set up the request
 	 */
-	public static function from_consumer_and_token(Consumer $consumer, Token $token, string $http_method, string $http_url, array $parameters = null): self
+	public static function from_consumer_and_token(Consumer $consumer, ?Token $token, string $http_method, string $http_url, array $parameters = null): self
 	{
 		$parameters = $parameters ?: [];
 		$defaults = [
@@ -535,7 +535,7 @@ class Request
 	}
 
 
-	public function sign_request(SignatureMethod $signature_method, Consumer $consumer, Token $token)
+	public function sign_request(SignatureMethod $signature_method, Consumer $consumer, ?Token $token)
 	{
 		$this->set_parameter(
 			'oauth_signature_method',
@@ -547,7 +547,7 @@ class Request
 	}
 
 
-	public function build_signature(SignatureMethod $signature_method, Consumer $consumer, Token $token)
+	public function build_signature(SignatureMethod $signature_method, Consumer $consumer, ?Token $token)
 	{
 		$signature = $signature_method->build_signature($this, $consumer, $token);
 		return $signature;

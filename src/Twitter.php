@@ -61,7 +61,9 @@ class Twitter
 		}
 
 		$this->consumer = new OAuth\Consumer($consumerKey, $consumerSecret);
-		$this->token = new OAuth\Token($accessToken, $accessTokenSecret);
+		if ($accessToken && $accessTokenSecret) {
+		    $this->token = new OAuth\Token($accessToken, $accessTokenSecret);
+        }
 	}
 
 
@@ -228,6 +230,18 @@ class Twitter
 	{
 		$res = $this->request("statuses/destroy/$id", 'POST');
 		return $res->id ?: false;
+	}
+
+
+	/**
+	 * Retrieves a single status.
+	 * @param  int|string  $id  status to be retrieved
+	 * @throws Exception
+	 */
+	public function get($id)
+	{
+		$res = $this->request("statuses/show/$id", 'GET');
+		return $res;
 	}
 
 
