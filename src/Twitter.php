@@ -148,10 +148,11 @@ class Twitter
 	 * Returns the most recent statuses.
 	 * https://dev.twitter.com/rest/reference/get/statuses/user_timeline
 	 * @param  int  $flags  timeline (ME | ME_AND_FRIENDS | REPLIES) and optional (RETWEETS)
+	 * @param  bool clickable return clickable text?
 	 * @return stdClass[]
 	 * @throws Exception
 	 */
-	public function load(int $flags = self::ME, int $count = 20, array $data = null): array
+	public function load(int $flags = self::ME, int $count = 20, array $data = null, $clickable = false): array
 	{
 		static $timelines = [
 			self::ME => 'user_timeline',
@@ -162,10 +163,22 @@ class Twitter
 			throw new \InvalidArgumentException;
 		}
 
-		return $this->cachedRequest('statuses/' . $timelines[$flags & 3], (array) $data + [
+		$res = $this->cachedRequest('statuses/' . $timelines[$flags & 3], (array) $data + [
 			'count' => $count,
 			'include_rts' => $flags & self::RETWEETS ? 1 : 0,
 		]);
+		
+		foreach ($res as &$tweet) {
+			if (isset($tweet->full_text)) {
+				$tweet->text = $tweet->full_text;
+			}
+			// while we are here, make links clickable
+			if ($clickable) {
+				$tweet->text = $this->clickable($tweet);
+			}
+		}
+
+		return $res;
 	}
 
 
@@ -249,7 +262,7 @@ class Twitter
 	 * Returns tweets that match a specified query.
 	 * @param  string|array
 	 * @param  bool  return complete response?
-     * @param  clickable return clickable text?
+         * @param  bool  clickable return clickable text?
 	 * @return stdClass  see https://dev.twitter.com/rest/reference/get/search/tweets
 	 * @throws TwitterException
 	 */
