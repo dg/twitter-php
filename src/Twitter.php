@@ -163,22 +163,12 @@ class Twitter
 			throw new \InvalidArgumentException;
 		}
 
-		$res = $this->cachedRequest('statuses/' . $timelines[$flags & 3], (array) $data + [
-			'count' => $count,
-			'include_rts' => $flags & self::RETWEETS ? 1 : 0,
-		]);
-		
-		foreach ($res as &$tweet) {
-			if (isset($tweet->full_text)) {
-				$tweet->text = $tweet->full_text;
-			}
-			// while we are here, make links clickable
-			if ($clickable) {
-				$tweet->text = $this->clickable($tweet);
-			}
-		}
-
-		return $res;
+		return $this->formatTweets(
+		    $this->cachedRequest('statuses/' . $timelines[$flags & 3], (array) $data + [
+			    'count' => $count,
+			    'include_rts' => $flags & self::RETWEETS ? 1 : 0,
+		    ]),
+		    $clickable);
 	}
 
 
@@ -269,19 +259,7 @@ class Twitter
 	public function search($query, $full = false, $clickable = false)
 	{
 		$res = $this->request('search/tweets', 'GET', is_array($query) ? $query : ['q' => $query]);
-
-		// for full tweets, must add this to query: 'tweet_mode' => 'extended',
-		// this will replace text by full_text, need to copy it
-		foreach ($res->statuses as &$tweet) {
-		    if (isset($tweet->full_text)) {
-		        $tweet->text = $tweet->full_text;
-		    }
-		    // while we are here, make links clickable
-		    if ($clickable) {
-		        $tweet->text = $this->clickable($tweet);
-		    }
-		}
-		return $full ? $res : $res->statuses;
+		return $this->formatTweets($full ? $res : $res->statuses, $clickable);
 	}
 
 
@@ -439,6 +417,34 @@ class Twitter
 				. iconv_substr($s, $item[2], iconv_strlen($s, 'UTF-8'), 'UTF-8');
 		}
 		return $s;
+	}
+
+	
+    /**
+     * format tweets if extended mode is set or if clickable is called
+     * @param  stdClass[] tweets
+     * @param  bool       clickable return clickable text?
+     * @return stdClass[]
+     */
+	protected function formatTweets($tweets, $clickable = false)
+	{
+		// for full tweets, must add this to query: 'tweet_mode' => 'extended',
+		// this will replace text by full_text, need to copy it
+		if (!empty($tweets)) {
+			// look at each tweet
+			foreach ($tweets as &$tweet) {
+				// get full_text as text for compatibility
+				if (isset($tweet->full_text)) {
+					$tweet->text = $tweet->full_text;
+				}
+				// while we are here, make links clickable
+				if ($clickable) {
+					$tweet->text = $this->clickable($tweet);
+				}
+			}
+		}
+
+		return $tweets;
 	}
 }
 
