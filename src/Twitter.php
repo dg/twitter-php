@@ -247,13 +247,27 @@ class Twitter
 
 	/**
 	 * Returns tweets that match a specified query.
-	 * https://dev.twitter.com/rest/reference/get/search/tweets
 	 * @param  string|array
-	 * @throws Exception
+	 * @param  bool  return complete response?
+     * @param  clickable return clickable text?
+	 * @return stdClass  see https://dev.twitter.com/rest/reference/get/search/tweets
+	 * @throws TwitterException
 	 */
-	public function search($query, bool $full = false): stdClass
+	public function search($query, $full = false, $clickable = false)
 	{
 		$res = $this->request('search/tweets', 'GET', is_array($query) ? $query : ['q' => $query]);
+
+		// for full tweets, must add this to query: 'tweet_mode' => 'extended',
+		// this will replace text by full_text, need to copy it
+		foreach ($res->statuses as &$tweet) {
+		    if (isset($tweet->full_text)) {
+		        $tweet->text = $tweet->full_text;
+		    }
+		    // while we are here, make links clickable
+		    if ($clickable) {
+		        $tweet->text = $this->clickable($tweet);
+		    }
+		}
 		return $full ? $res : $res->statuses;
 	}
 
