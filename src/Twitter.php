@@ -254,7 +254,7 @@ class Twitter
 	public function search($query, bool $full = false): stdClass
 	{
 		$res = $this->request('search/tweets', 'GET', is_array($query) ? $query : ['q' => $query]);
-		return $full ? $res : $res->statuses;
+		return (object)($full ? $res : $res->statuses);
 	}
 
 
