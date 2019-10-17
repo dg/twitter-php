@@ -327,6 +327,10 @@ class Twitter
 		if ($payload === false) {
 			throw new Exception('Invalid server response');
 		}
+		
+		if($method === "DELETE"){
+         	   curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "DELETE");
+        	}
 
 		$code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 		if ($code >= 400) {
