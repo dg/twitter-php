@@ -62,8 +62,8 @@ class Twitter
 
 		$this->consumer = new OAuth\Consumer($consumerKey, $consumerSecret);
 		if ($accessToken && $accessTokenSecret) {
-		    $this->token = new OAuth\Token($accessToken, $accessTokenSecret);
-        }
+			$this->token = new OAuth\Token($accessToken, $accessTokenSecret);
+		}
 	}
 
 
