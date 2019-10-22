@@ -260,7 +260,7 @@ class Twitter
 
 	/**
 	 * Process HTTP request.
-	 * @param  string  $method  GET|POST|JSONPOST
+	 * @param  string  $method  GET|POST|JSONPOST|DELETE
 	 * @return stdClass|stdClass[]
 	 * @throws Exception
 	 */
@@ -307,11 +307,16 @@ class Twitter
 			CURLOPT_RETURNTRANSFER => true,
 			CURLOPT_HTTPHEADER => $headers,
 		] + $this->httpOptions;
+
 		if ($method === 'POST') {
 			$options += [
 				CURLOPT_POST => true,
 				CURLOPT_POSTFIELDS => $data,
 				CURLOPT_SAFE_UPLOAD => true,
+			];
+		} elseif ($method === 'DELETE') {
+			$options += [
+				CURLOPT_CUSTOMREQUEST => 'DELETE',
 			];
 		}
 
