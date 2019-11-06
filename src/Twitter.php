@@ -257,6 +257,17 @@ class Twitter
 		return $full ? $res : $res->statuses;
 	}
 
+	
+	/**
+	 * Retrieves the top 50 trending topics for a specific WOEID.
+	 * @param  int|string  $WOEID  Where On Earth IDentifier
+	 */
+	public function getTrends($WOEID)
+	{
+		$res = $this->request("trends/place.json?id=$WOEID", 'GET');
+		return $res;
+	}
+
 
 	/**
 	 * Process HTTP request.
