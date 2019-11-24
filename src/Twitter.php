@@ -364,7 +364,7 @@ class Twitter
 			. md5($resource . json_encode($data) . serialize([$this->consumer, $this->token]))
 			. '.json';
 
-		$cache = @json_decode(@file_get_contents($cacheFile)); // intentionally @
+		$cache = @json_decode((string) @file_get_contents($cacheFile)); // intentionally @
 		$expiration = is_string($cacheExpire) ? strtotime($cacheExpire) - time() : $cacheExpire;
 		if ($cache && @filemtime($cacheFile) + $expiration > time()) { // intentionally @
 			return $cache;
