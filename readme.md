@@ -118,6 +118,10 @@ $statuses = $twitter->request('statuses/retweets_of_me', 'GET', ['count' => 20])
 
 Changelog
 ---------
+v4.1 (11/2019)
+- added Delete Method (#68)
+- token is optional throughout + supply get() method
+
 v4.0 (2/2019)
 - requires PHP 7.1 and uses its advantages like typehints, strict types etc.
 - class Twitter is now DG\Twitter\Twitter

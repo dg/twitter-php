@@ -10,7 +10,7 @@ declare(strict_types=1);
  *
  * Homepage:    https://phpfashion.com/twitter-for-php
  * Twitter API: https://dev.twitter.com/rest/public
- * Version:     4.0
+ * Version:     4.1
  */
 
 namespace DG\Twitter;
