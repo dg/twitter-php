@@ -148,10 +148,11 @@ class Twitter
 	 * Returns the most recent statuses.
 	 * https://dev.twitter.com/rest/reference/get/statuses/user_timeline
 	 * @param  int  $flags  timeline (ME | ME_AND_FRIENDS | REPLIES) and optional (RETWEETS)
+	 * @param  bool clickable return clickable text?
 	 * @return stdClass[]
 	 * @throws Exception
 	 */
-	public function load(int $flags = self::ME, int $count = 20, array $data = null): array
+	public function load(int $flags = self::ME, int $count = 20, array $data = null, $clickable = false): array
 	{
 		static $timelines = [
 			self::ME => 'user_timeline',
@@ -162,10 +163,12 @@ class Twitter
 			throw new \InvalidArgumentException;
 		}
 
-		return $this->cachedRequest('statuses/' . $timelines[$flags & 3], (array) $data + [
-			'count' => $count,
-			'include_rts' => $flags & self::RETWEETS ? 1 : 0,
-		]);
+		return $this->formatTweets(
+		    $this->cachedRequest('statuses/' . $timelines[$flags & 3], (array) $data + [
+			    'count' => $count,
+			    'include_rts' => $flags & self::RETWEETS ? 1 : 0,
+		    ]),
+		    $clickable);
 	}
 
 
@@ -247,14 +250,16 @@ class Twitter
 
 	/**
 	 * Returns tweets that match a specified query.
-	 * https://dev.twitter.com/rest/reference/get/search/tweets
 	 * @param  string|array
-	 * @throws Exception
+	 * @param  bool  return complete response?
+         * @param  bool  clickable return clickable text?
+	 * @return stdClass  see https://dev.twitter.com/rest/reference/get/search/tweets
+	 * @throws TwitterException
 	 */
-	public function search($query, bool $full = false): stdClass
+	public function search($query, $full = false, $clickable = false)
 	{
 		$res = $this->request('search/tweets', 'GET', is_array($query) ? $query : ['q' => $query]);
-		return $full ? $res : $res->statuses;
+		return $this->formatTweets($full ? $res : $res->statuses, $clickable);
 	}
 
 
@@ -417,6 +422,34 @@ class Twitter
 				. iconv_substr($s, $item[2], iconv_strlen($s, 'UTF-8'), 'UTF-8');
 		}
 		return $s;
+	}
+
+	
+    /**
+     * format tweets if extended mode is set or if clickable is called
+     * @param  stdClass[] tweets
+     * @param  bool       clickable return clickable text?
+     * @return stdClass[]
+     */
+	protected function formatTweets($tweets, $clickable = false)
+	{
+		// for full tweets, must add this to query: 'tweet_mode' => 'extended',
+		// this will replace text by full_text, need to copy it
+		if (!empty($tweets)) {
+			// look at each tweet
+			foreach ($tweets as &$tweet) {
+				// get full_text as text for compatibility
+				if (isset($tweet->full_text)) {
+					$tweet->text = $tweet->full_text;
+				}
+				// while we are here, make links clickable
+				if ($clickable) {
+					$tweet->text = $this->clickable($tweet);
+				}
+			}
+		}
+
+		return $tweets;
 	}
 }
 
