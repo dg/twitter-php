@@ -264,7 +264,7 @@ class Twitter
 	 * @return stdClass|stdClass[]
 	 * @throws Exception
 	 */
-	public function request(string $resource, string $method, array $data = [], array $files = [])
+	public function request(string $resource, string $method, array $data = [], array $files = [], bool $notJson = false)
 	{
 		if (!strpos($resource, '://')) {
 			if (!strpos($resource, '.')) {
@@ -326,6 +326,10 @@ class Twitter
 		if (curl_errno($curl)) {
 			throw new Exception('Server error: ' . curl_error($curl));
 		}
+		
+		if($notJson){
+           		return $result;
+        	}	
 
 		$payload = @json_decode($result, false, 128, JSON_BIGINT_AS_STRING); // intentionally @
 
