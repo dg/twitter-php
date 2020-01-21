@@ -272,7 +272,7 @@ class Twitter
 	/**
 	 * Process HTTP request.
 	 * @param  string  $method  GET|POST|JSONPOST|DELETE
-	 * @return stdClass|stdClass[]
+	 * @return mixed
 	 * @throws Exception
 	 */
 	public function request(string $resource, string $method, array $data = [], array $files = [])
@@ -338,10 +338,11 @@ class Twitter
 			throw new Exception('Server error: ' . curl_error($curl));
 		}
 
-		$payload = @json_decode($result, false, 128, JSON_BIGINT_AS_STRING); // intentionally @
-
-		if ($payload === false) {
-			throw new Exception('Invalid server response');
+		if (strpos(curl_getinfo($curl, CURLINFO_CONTENT_TYPE), 'application/json') !== false) {
+			$payload = @json_decode($result, false, 128, JSON_BIGINT_AS_STRING); // intentionally @
+			if ($payload === false) {
+				throw new Exception('Invalid server response');
+			}
 		}
 
 		$code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
