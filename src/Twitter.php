@@ -250,8 +250,9 @@ class Twitter
 	 * https://dev.twitter.com/rest/reference/get/search/tweets
 	 * @param  string|array
 	 * @throws Exception
+	 * @return stdClass|stdClass[]
 	 */
-	public function search($query, bool $full = false): stdClass
+	public function search($query, bool $full = false)
 	{
 		$res = $this->request('search/tweets', 'GET', is_array($query) ? $query : ['q' => $query]);
 		return $full ? $res : $res->statuses;
