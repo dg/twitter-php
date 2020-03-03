@@ -304,7 +304,7 @@ class Twitter
 			$data = json_encode($data);
 			$headers[] = 'Content-Type: application/json';
 
-		} elseif ($method === 'GET' && $data) {
+		} elseif (($method === 'GET' || $method === 'DELETE') && $data) {
 			$resource .= '?' . http_build_query($data, '', '&');
 		}
 
