@@ -352,6 +352,8 @@ class Twitter
 				: "Server error #$code with answer $result",
 				$code
 			);
+		} elseif ($code === 204) {
+			$payload = true;
 		}
 
 		return $payload;
