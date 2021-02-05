@@ -6,13 +6,21 @@
 Twitter for PHP is a very small and easy-to-use library for sending
 messages to Twitter and receiving status updates.
 
-If you like this, **[please make a donation now](https://nette.org/make-donation?to=twitter-php)**. Thank you!
-
 It requires PHP 5.4 or newer with CURL extension and is licensed under the New BSD License.
 You can obtain the latest version from our [GitHub repository](https://github.com/dg/twitter-php)
 or install it via Composer:
 
 	composer require dg/twitter-php
+
+
+[Support Me](https://github.com/sponsors/dg)
+--------------------------------------------
+
+Do you like Nette DI? Are you looking forward to the new features?
+
+[![Buy me a coffee](https://files.nette.org/icons/donation-3.svg)](https://github.com/sponsors/dg)
+
+Thank you!
 
 
 Usage
