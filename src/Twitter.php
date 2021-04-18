@@ -228,7 +228,7 @@ class Twitter
 	 */
 	public function destroy($id)
 	{
-		$res = $this->request("statuses/destroy/$id", 'POST');
+		$res = $this->request("statuses/destroy/$id", 'POST', ["id" => $id]);
 		return $res->id ?: false;
 	}
 
