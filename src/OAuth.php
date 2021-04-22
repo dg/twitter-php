@@ -37,14 +37,10 @@ class Exception extends \Exception
 
 class Consumer
 {
-	public $key;
-	public $secret;
-
-
-	public function __construct(string $key, string $secret)
-	{
-		$this->key = $key;
-		$this->secret = $secret;
+	public function __construct(
+		public string $key,
+		public string $secret,
+	) {
 	}
 
 
@@ -57,19 +53,10 @@ class Consumer
 
 class Token
 {
-	// access tokens and request tokens
-	public $key;
-	public $secret;
-
-
-	/**
-	 * key = the token
-	 * secret = the token secret
-	 */
-	public function __construct(string $key, string $secret)
-	{
-		$this->key = $key;
-		$this->secret = $secret;
+	public function __construct(
+		public string $key,
+		public string $secret,
+	) {
 	}
 
 
@@ -153,7 +140,7 @@ class SignatureMethod_HMAC_SHA1 extends SignatureMethod
 		$key_parts = Util::urlencode_rfc3986($key_parts);
 		$key = implode('&', $key_parts);
 
-		return base64_encode(hash_hmac('sha1', $base_string, $key, true));
+		return base64_encode(hash_hmac('sha1', $base_string, $key, binary: true));
 	}
 }
 
@@ -279,38 +266,39 @@ abstract class SignatureMethod_RSA_SHA1 extends SignatureMethod
 class Request
 {
 	// for debug purposes
-	public $base_string;
-	public static $version = '1.0';
-	public static $POST_INPUT = 'php://input';
-	protected $parameters;
-	protected $http_method;
-	protected $http_url;
+	public string $base_string;
+	public static string $version = '1.0';
+	public static string $POST_INPUT = 'php://input';
 
 
-	public function __construct(string $http_method, string $http_url, array $parameters = null)
-	{
-		$parameters = $parameters ?: [];
-		$parameters = array_merge(Util::parse_parameters((string) parse_url($http_url, PHP_URL_QUERY)), $parameters);
-		$this->parameters = $parameters;
-		$this->http_method = $http_method;
-		$this->http_url = $http_url;
+	public function __construct(
+		protected string $http_method,
+		protected string $http_url,
+		protected ?array $parameters = [],
+	) {
+		$this->parameters = array_merge(Util::parse_parameters((string) parse_url($http_url, PHP_URL_QUERY)), $parameters);
 	}
 
 
 	/**
 	 * attempt to build up a request from what was passed to the server
 	 */
-	public static function from_request(string $http_method = null, string $http_url = null, array $parameters = null): self
+	public static function from_request(
+		?string $http_method = null,
+		?string $http_url = null,
+		?array $parameters = null,
+	): self
 	{
 		$scheme = (!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] != 'on')
 			? 'http'
 			: 'https';
-		$http_url = ($http_url) ? $http_url : $scheme .
+		$http_url = ($http_url)
+			?: $scheme .
 			'://' . $_SERVER['HTTP_HOST'] .
 			':' .
 			$_SERVER['SERVER_PORT'] .
 			$_SERVER['REQUEST_URI'];
-		$http_method = ($http_method) ? $http_method : $_SERVER['REQUEST_METHOD'];
+		$http_method = ($http_method) ?: $_SERVER['REQUEST_METHOD'];
 
 		// We weren't handed any parameters, so let's find the ones relevant to
 		// this request.
@@ -330,16 +318,19 @@ class Request
 				&& strstr($request_headers['Content-Type'], 'application/x-www-form-urlencoded')
 			) {
 				$post_data = Util::parse_parameters(
-					file_get_contents(self::$POST_INPUT)
+					file_get_contents(self::$POST_INPUT),
 				);
 				$parameters = array_merge($parameters, $post_data);
 			}
 
 			// We have a Authorization-header with OAuth data. Parse the header
 			// and add those overriding any duplicates from GET or POST
-			if (isset($request_headers['Authorization']) && substr($request_headers['Authorization'], 0, 6) == 'OAuth ') {
+			if (
+				isset($request_headers['Authorization'])
+				&& str_starts_with($request_headers['Authorization'], 'OAuth ')
+			) {
 				$header_parameters = Util::split_header(
-					$request_headers['Authorization']
+					$request_headers['Authorization'],
 				);
 				$parameters = array_merge($parameters, $header_parameters);
 			}
@@ -352,7 +343,13 @@ class Request
 	/**
 	 * pretty much a helper function to set up the request
 	 */
-	public static function from_consumer_and_token(Consumer $consumer, ?Token $token, string $http_method, string $http_url, array $parameters = null): self
+	public static function from_consumer_and_token(
+		Consumer $consumer,
+		?Token $token,
+		string $http_method,
+		string $http_url,
+		?array $parameters = null,
+	): self
 	{
 		$parameters = $parameters ?: [];
 		$defaults = [
@@ -390,7 +387,7 @@ class Request
 
 	public function get_parameter(string $name)
 	{
-		return isset($this->parameters[$name]) ? $this->parameters[$name] : null;
+		return $this->parameters[$name] ?? null;
 	}
 
 
@@ -462,10 +459,10 @@ class Request
 	{
 		$parts = parse_url($this->http_url);
 
-		$scheme = (isset($parts['scheme'])) ? $parts['scheme'] : 'http';
-		$port = (isset($parts['port'])) ? $parts['port'] : (($scheme == 'https') ? '443' : '80');
-		$host = (isset($parts['host'])) ? $parts['host'] : '';
-		$path = (isset($parts['path'])) ? $parts['path'] : '';
+		$scheme = $parts['scheme'] ?? 'http';
+		$port = $parts['port'] ?? ($scheme == 'https') ? '443' : '80';
+		$host = $parts['host'] ?? '';
+		$path = $parts['path'] ?? '';
 
 		if (($scheme == 'https' && $port != '443')
 				|| ($scheme == 'http' && $port != '80')) {
@@ -501,7 +498,7 @@ class Request
 	/**
 	 * builds the Authorization: header
 	 */
-	public function to_header(string $realm = null): string
+	public function to_header(?string $realm = null): string
 	{
 		$first = true;
 		if ($realm) {
@@ -513,7 +510,7 @@ class Request
 
 		$total = [];
 		foreach ($this->parameters as $k => $v) {
-			if (substr($k, 0, 5) != 'oauth') {
+			if (!str_starts_with($k, 'oauth')) {
 				continue;
 			}
 			if (is_array($v)) {
@@ -533,19 +530,19 @@ class Request
 	}
 
 
-	public function sign_request(SignatureMethod $signature_method, Consumer $consumer, ?Token $token)
+	public function sign_request(SignatureMethod $signature_method, Consumer $consumer, ?Token $token): void
 	{
 		$this->set_parameter(
 			'oauth_signature_method',
 			$signature_method->get_name(),
-			false
+			allow_duplicates: false,
 		);
 		$signature = $this->build_signature($signature_method, $consumer, $token);
-		$this->set_parameter('oauth_signature', $signature, false);
+		$this->set_parameter('oauth_signature', $signature, allow_duplicates: false);
 	}
 
 
-	public function build_signature(SignatureMethod $signature_method, Consumer $consumer, ?Token $token)
+	public function build_signature(SignatureMethod $signature_method, Consumer $consumer, ?Token $token): string
 	{
 		$signature = $signature_method->build_signature($this, $consumer, $token);
 		return $signature;
@@ -576,10 +573,10 @@ class Request
 
 class Util
 {
-	public static function urlencode_rfc3986($input)
+	public static function urlencode_rfc3986($input): array|string
 	{
 		if (is_array($input)) {
-			return array_map([__CLASS__, 'urlencode_rfc3986'], $input);
+			return array_map(self::urlencode_rfc3986(...), $input);
 		} elseif (is_scalar($input)) {
 			return str_replace('+', ' ', str_replace('%7E', '~', rawurlencode((string) $input)));
 		} else {
@@ -638,7 +635,7 @@ class Util
 				$key = str_replace(
 					' ',
 					'-',
-					ucwords(strtolower(str_replace('-', ' ', $key)))
+					ucwords(strtolower(str_replace('-', ' ', $key))),
 				);
 				$out[$key] = $value;
 			}
@@ -654,14 +651,14 @@ class Util
 			}
 
 			foreach ($_SERVER as $key => $value) {
-				if (substr($key, 0, 5) == 'HTTP_') {
+				if (str_starts_with($key, 'HTTP_')) {
 					// this is chaos, basically it is just there to capitalize the first
 					// letter of every word that is not an initial HTTP and strip HTTP
 					// code from przemek
 					$key = str_replace(
 						' ',
 						'-',
-						ucwords(strtolower(str_replace('_', ' ', substr($key, 5))))
+						ucwords(strtolower(str_replace('_', ' ', substr($key, 5)))),
 					);
 					$out[$key] = $value;
 				}
@@ -721,7 +718,7 @@ class Util
 
 		// Parameters are sorted by name, using lexicographical byte value ordering.
 		// Ref: Spec: 9.1.1 (1)
-		uksort($params, 'strcmp');
+		uksort($params, strcmp(...));
 
 		$pairs = [];
 		foreach ($params as $parameter => $value) {

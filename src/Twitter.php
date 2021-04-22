@@ -13,6 +13,8 @@
 
 namespace DG\Twitter;
 
+use DG\Twitter\OAuth\Consumer;
+use DG\Twitter\OAuth\Token;
 use stdClass;
 
 
@@ -25,35 +27,28 @@ class Twitter
 	public const ME_AND_FRIENDS = 2;
 	public const REPLIES = 3;
 	public const RETWEETS = 128; // include retweets?
-
 	private const API_URL = 'https://api.twitter.com/1.1/';
-
-	/** @var int */
-	public static $cacheExpire = '30 minutes';
-
-	/** @var string */
-	public static $cacheDir;
-
-	/** @var array */
-	public $httpOptions = [
+	public static string $cacheExpire = '30 minutes';
+	public static string $cacheDir;
+	public array $httpOptions = [
 		CURLOPT_TIMEOUT => 20,
 		CURLOPT_SSL_VERIFYPEER => 0,
 		CURLOPT_USERAGENT => 'Twitter for PHP',
 	];
-
-	/** @var OAuth\Consumer */
-	private $consumer;
-
-	/** @var OAuth\Token */
-	private $token;
+	private readonly Consumer $consumer;
+	private ?Token $token = null;
 
 
 	/**
 	 * Creates object using consumer and access keys.
 	 * @throws Exception when CURL extension is not loaded
 	 */
-	public function __construct(string $consumerKey, string $consumerSecret, string $accessToken = null, string $accessTokenSecret = null)
-	{
+	public function __construct(
+		string $consumerKey,
+		string $consumerSecret,
+		?string $accessToken = null,
+		?string $accessTokenSecret = null,
+	) {
 		if (!extension_loaded('curl')) {
 			throw new Exception('PHP extension CURL is not loaded.');
 		}
@@ -98,14 +93,14 @@ class Twitter
 				'https://upload.twitter.com/1.1/media/upload.json',
 				'POST',
 				[],
-				['media' => $item]
+				['media' => $item],
 			);
 			$mediaIds[] = $res->media_id_string;
 		}
 		return $this->request(
 			'statuses/update',
 			'POST',
-			$options + ['status' => $message, 'media_ids' => implode(',', $mediaIds) ?: null]
+			$options + ['status' => $message, 'media_ids' => implode(',', $mediaIds) ?: null],
 		);
 	}
 
@@ -126,7 +121,7 @@ class Twitter
 					'target' => ['recipient_id' => $this->loadUserInfo($username)->id_str],
 					'message_data' => ['text' => $message],
 				],
-			]]
+			]],
 		);
 	}
 
@@ -149,7 +144,7 @@ class Twitter
 	 * @return stdClass[]
 	 * @throws Exception
 	 */
-	public function load(int $flags = self::ME, int $count = 20, array $data = null): array
+	public function load(int $flags = self::ME, int $count = 20, ?array $data = null): array
 	{
 		static $timelines = [
 			self::ME => 'user_timeline',
@@ -194,7 +189,12 @@ class Twitter
 	 * https://dev.twitter.com/rest/reference/get/followers/ids
 	 * @throws Exception
 	 */
-	public function loadUserFollowers(string $username, int $count = 5000, int $cursor = -1, $cacheExpiry = null): stdClass
+	public function loadUserFollowers(
+		string $username,
+		int $count = 5000,
+		int $cursor = -1,
+		$cacheExpiry = null,
+	): stdClass
 	{
 		return $this->cachedRequest('followers/ids', [
 			'screen_name' => $username,
@@ -209,7 +209,12 @@ class Twitter
 	 * https://dev.twitter.com/rest/reference/get/followers/list
 	 * @throws Exception
 	 */
-	public function loadUserFollowersList(string $username, int $count = 200, int $cursor = -1, $cacheExpiry = null): stdClass
+	public function loadUserFollowersList(
+		string $username,
+		int $count = 200,
+		int $cursor = -1,
+		$cacheExpiry = null,
+	): stdClass
 	{
 		return $this->cachedRequest('followers/list', [
 			'screen_name' => $username,
@@ -272,6 +277,7 @@ class Twitter
 	 * @param  string  $method  GET|POST|JSONPOST|DELETE
 	 * @return mixed
 	 * @throws Exception
+	 * @param array<string, mixed> $files
 	 */
 	public function request(string $resource, string $method, array $data = [], array $files = [])
 	{
@@ -336,7 +342,7 @@ class Twitter
 			throw new Exception('Server error: ' . curl_error($curl));
 		}
 
-		if (strpos(curl_getinfo($curl, CURLINFO_CONTENT_TYPE), 'application/json') !== false) {
+		if (str_contains(curl_getinfo($curl, CURLINFO_CONTENT_TYPE), 'application/json')) {
 			$payload = @json_decode($result, false, 128, JSON_BIGINT_AS_STRING); // intentionally @
 			if ($payload === false) {
 				throw new Exception('Invalid server response');
@@ -345,10 +351,9 @@ class Twitter
 
 		$code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 		if ($code >= 400) {
-			throw new Exception(isset($payload->errors[0]->message)
-				? $payload->errors[0]->message
-				: "Server error #$code with answer $result",
-				$code
+			throw new Exception(
+				$payload->errors[0]->message ?? "Server error #$code with answer $result",
+				$code,
 			);
 		} elseif ($code === 204) {
 			$payload = true;
@@ -361,6 +366,7 @@ class Twitter
 	/**
 	 * Cached HTTP request.
 	 * @return stdClass|stdClass[]
+	 * @param array<string, string>|array<string, int> $data
 	 */
 	public function cachedRequest(string $resource, array $data = [], $cacheExpire = null)
 	{
@@ -377,7 +383,9 @@ class Twitter
 			. '.json';
 
 		$cache = @json_decode((string) @file_get_contents($cacheFile)); // intentionally @
-		$expiration = is_string($cacheExpire) ? strtotime($cacheExpire) - time() : $cacheExpire;
+		$expiration = is_string($cacheExpire)
+			? strtotime($cacheExpire) - time()
+			: $cacheExpire;
 		if ($cache && @filemtime($cacheFile) + $expiration > time()) { // intentionally @
 			return $cache;
 		}
@@ -422,7 +430,7 @@ class Twitter
 		}
 
 		krsort($all);
-		$s = isset($status->full_text) ? $status->full_text : $status->text;
+		$s = $status->full_text ?? $status->text;
 		foreach ($all as $pos => $item) {
 			$s = iconv_substr($s, 0, $pos, 'UTF-8')
 				. '<a href="' . htmlspecialchars($item[0]) . '">' . htmlspecialchars($item[1]) . '</a>'
