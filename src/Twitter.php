@@ -54,8 +54,12 @@ class Twitter
 	 * Creates object using consumer and access keys.
 	 * @throws Exception when CURL extension is not loaded
 	 */
-	public function __construct(string $consumerKey, string $consumerSecret, string $accessToken = null, string $accessTokenSecret = null)
-	{
+	public function __construct(
+		string $consumerKey,
+		string $consumerSecret,
+		string $accessToken = null,
+		string $accessTokenSecret = null
+	) {
 		if (!extension_loaded('curl')) {
 			throw new Exception('PHP extension CURL is not loaded.');
 		}
@@ -196,8 +200,12 @@ class Twitter
 	 * https://dev.twitter.com/rest/reference/get/followers/ids
 	 * @throws Exception
 	 */
-	public function loadUserFollowers(string $username, int $count = 5000, int $cursor = -1, $cacheExpiry = null): stdClass
-	{
+	public function loadUserFollowers(
+		string $username,
+		int $count = 5000,
+		int $cursor = -1,
+		$cacheExpiry = null
+	): stdClass {
 		return $this->cachedRequest('followers/ids', [
 			'screen_name' => $username,
 			'count' => $count,
@@ -211,8 +219,12 @@ class Twitter
 	 * https://dev.twitter.com/rest/reference/get/followers/list
 	 * @throws Exception
 	 */
-	public function loadUserFollowersList(string $username, int $count = 200, int $cursor = -1, $cacheExpiry = null): stdClass
-	{
+	public function loadUserFollowersList(
+		string $username,
+		int $count = 200,
+		int $cursor = -1,
+		$cacheExpiry = null
+	): stdClass {
 		return $this->cachedRequest('followers/list', [
 			'screen_name' => $username,
 			'count' => $count,
@@ -347,9 +359,8 @@ class Twitter
 
 		$code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 		if ($code >= 400) {
-			throw new Exception(isset($payload->errors[0]->message)
-				? $payload->errors[0]->message
-				: "Server error #$code with answer $result",
+			throw new Exception(
+				$payload->errors[0]->message ?? "Server error #$code with answer $result",
 				$code
 			);
 		} elseif ($code === 204) {
@@ -379,7 +390,9 @@ class Twitter
 			. '.json';
 
 		$cache = @json_decode((string) @file_get_contents($cacheFile)); // intentionally @
-		$expiration = is_string($cacheExpire) ? strtotime($cacheExpire) - time() : $cacheExpire;
+		$expiration = is_string($cacheExpire)
+			? strtotime($cacheExpire) - time()
+			: $cacheExpire;
 		if ($cache && @filemtime($cacheFile) + $expiration > time()) { // intentionally @
 			return $cache;
 		}
@@ -424,7 +437,7 @@ class Twitter
 		}
 
 		krsort($all);
-		$s = isset($status->full_text) ? $status->full_text : $status->text;
+		$s = $status->full_text ?? $status->text;
 		foreach ($all as $pos => $item) {
 			$s = iconv_substr($s, 0, $pos, 'UTF-8')
 				. '<a href="' . htmlspecialchars($item[0]) . '">' . htmlspecialchars($item[1]) . '</a>'

@@ -302,12 +302,17 @@ class Request
 	/**
 	 * attempt to build up a request from what was passed to the server
 	 */
-	public static function from_request(string $http_method = null, string $http_url = null, array $parameters = null): self
-	{
+	public static function from_request(
+		string $http_method = null,
+		string $http_url = null,
+		array $parameters = null
+	): self {
 		$scheme = (!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] != 'on')
 			? 'http'
 			: 'https';
-		$http_url = ($http_url) ? $http_url : $scheme .
+		$http_url = ($http_url)
+			? $http_url
+			: $scheme .
 			'://' . $_SERVER['HTTP_HOST'] .
 			':' .
 			$_SERVER['SERVER_PORT'] .
@@ -339,7 +344,10 @@ class Request
 
 			// We have a Authorization-header with OAuth data. Parse the header
 			// and add those overriding any duplicates from GET or POST
-			if (isset($request_headers['Authorization']) && substr($request_headers['Authorization'], 0, 6) == 'OAuth ') {
+			if (
+				isset($request_headers['Authorization'])
+				&& substr($request_headers['Authorization'], 0, 6) == 'OAuth '
+			) {
 				$header_parameters = Util::split_header(
 					$request_headers['Authorization']
 				);
@@ -354,8 +362,13 @@ class Request
 	/**
 	 * pretty much a helper function to set up the request
 	 */
-	public static function from_consumer_and_token(Consumer $consumer, ?Token $token, string $http_method, string $http_url, array $parameters = null): self
-	{
+	public static function from_consumer_and_token(
+		Consumer $consumer,
+		?Token $token,
+		string $http_method,
+		string $http_url,
+		array $parameters = null
+	): self {
 		$parameters = $parameters ?: [];
 		$defaults = [
 			'oauth_version' => self::$version,
@@ -392,7 +405,7 @@ class Request
 
 	public function get_parameter(string $name)
 	{
-		return isset($this->parameters[$name]) ? $this->parameters[$name] : null;
+		return $this->parameters[$name] ?? null;
 	}
 
 
@@ -465,7 +478,9 @@ class Request
 		$parts = parse_url($this->http_url);
 
 		$scheme = (isset($parts['scheme'])) ? $parts['scheme'] : 'http';
-		$port = (isset($parts['port'])) ? $parts['port'] : (($scheme == 'https') ? '443' : '80');
+		$port = (isset($parts['port']))
+			? $parts['port']
+			: (($scheme == 'https') ? '443' : '80');
 		$host = (isset($parts['host'])) ? $parts['host'] : '';
 		$path = (isset($parts['path'])) ? $parts['path'] : '';
 
@@ -581,7 +596,7 @@ class Util
 	public static function urlencode_rfc3986($input)
 	{
 		if (is_array($input)) {
-			return array_map([__CLASS__, 'urlencode_rfc3986'], $input);
+			return array_map([self::class, 'urlencode_rfc3986'], $input);
 		} elseif (is_scalar($input)) {
 			return str_replace('+', ' ', str_replace('%7E', '~', rawurlencode((string) $input)));
 		} else {
