@@ -14,9 +14,7 @@ declare(strict_types=1);
  */
 
 namespace DG\Twitter;
-
 use stdClass;
-
 
 /**
  * Twitter API.
@@ -49,7 +47,6 @@ class Twitter
 	/** @var OAuth\Token */
 	private $token;
 
-
 	/**
 	 * Creates object using consumer and access keys.
 	 * @throws Exception when CURL extension is not loaded
@@ -70,11 +67,12 @@ class Twitter
 		}
 	}
 
-
-	/**
-	 * Tests if user credentials are valid.
-	 * @throws Exception
-	 */
+    /**
+     * Tests if user credentials are valid.
+     * @return bool
+     * @throws Exception
+     * @throws OAuth\Exception
+     */
 	public function authenticate(): bool
 	{
 		try {
@@ -89,13 +87,16 @@ class Twitter
 		}
 	}
 
-
-	/**
-	 * Sends message to the Twitter.
-	 * https://dev.twitter.com/rest/reference/post/statuses/update
-	 * @param  string|array  $mediaPath  path to local media file to be uploaded
-	 * @throws Exception
-	 */
+    /**
+     * Sends message to the Twitter.
+     * https://dev.twitter.com/rest/reference/post/statuses/update
+     * @param string $message
+     * @param null $mediaPath path to local media file to be uploaded
+     * @param array $options
+     * @return stdClass
+     * @throws Exception
+     * @throws OAuth\Exception
+     */
 	public function send(string $message, $mediaPath = null, array $options = []): stdClass
 	{
 		$mediaIds = [];
@@ -115,12 +116,15 @@ class Twitter
 		);
 	}
 
-
-	/**
-	 * Sends a direct message to the specified user.
-	 * https://dev.twitter.com/rest/reference/post/direct_messages/new
-	 * @throws Exception
-	 */
+    /**
+     * Sends a direct message to the specified user.
+     * https://dev.twitter.com/rest/reference/post/direct_messages/new
+     * @param string $username
+     * @param string $message
+     * @return stdClass
+     * @throws Exception
+     * @throws OAuth\Exception
+     */
 	public function sendDirectMessage(string $username, string $message): stdClass
 	{
 		return $this->request(
@@ -136,25 +140,29 @@ class Twitter
 		);
 	}
 
-
-	/**
-	 * Follows a user on Twitter.
-	 * https://dev.twitter.com/rest/reference/post/friendships/create
-	 * @throws Exception
-	 */
+    /**
+     * Follows a user on Twitter.
+     * https://dev.twitter.com/rest/reference/post/friendships/create
+     * @param string $username
+     * @return stdClass
+     * @throws Exception
+     * @throws OAuth\Exception
+     */
 	public function follow(string $username): stdClass
 	{
 		return $this->request('friendships/create', 'POST', ['screen_name' => $username]);
 	}
 
-
-	/**
-	 * Returns the most recent statuses.
-	 * https://dev.twitter.com/rest/reference/get/statuses/user_timeline
-	 * @param  int  $flags  timeline (ME | ME_AND_FRIENDS | REPLIES) and optional (RETWEETS)
-	 * @return stdClass[]
-	 * @throws Exception
-	 */
+    /**
+     * Returns the most recent statuses.
+     * https://dev.twitter.com/rest/reference/get/statuses/user_timeline
+     * @param int $flags timeline (ME | ME_AND_FRIENDS | REPLIES) and optional (RETWEETS)
+     * @param int $count
+     * @param array|null $data
+     * @return stdClass[]
+     * @throws Exception
+     * @throws OAuth\Exception
+     */
 	public function load(int $flags = self::ME, int $count = 20, array $data = null): array
 	{
 		static $timelines = [
@@ -172,34 +180,43 @@ class Twitter
 		]);
 	}
 
-
-	/**
-	 * Returns information of a given user.
-	 * https://dev.twitter.com/rest/reference/get/users/show
-	 * @throws Exception
-	 */
+    /**
+     * Returns information of a given user.
+     * https://dev.twitter.com/rest/reference/get/users/show
+     * @param string $username
+     * @return stdClass
+     * @throws Exception
+     * @throws OAuth\Exception
+     */
 	public function loadUserInfo(string $username): stdClass
 	{
 		return $this->cachedRequest('users/show', ['screen_name' => $username]);
 	}
 
-
-	/**
-	 * Returns information of a given user by id.
-	 * https://dev.twitter.com/rest/reference/get/users/show
-	 * @throws Exception
-	 */
+    /**
+     * Returns information of a given user by id.
+     * https://dev.twitter.com/rest/reference/get/users/show
+     * @param string $id
+     * @return stdClass
+     * @throws Exception
+     * @throws OAuth\Exception
+     */
 	public function loadUserInfoById(string $id): stdClass
 	{
 		return $this->cachedRequest('users/show', ['user_id' => $id]);
 	}
 
-
-	/**
-	 * Returns IDs of followers of a given user.
-	 * https://dev.twitter.com/rest/reference/get/followers/ids
-	 * @throws Exception
-	 */
+    /**
+     * Returns IDs of followers of a given user.
+     * https://dev.twitter.com/rest/reference/get/followers/ids
+     * @param string $username
+     * @param int $count
+     * @param int $cursor
+     * @param null $cacheExpiry
+     * @return stdClass
+     * @throws Exception
+     * @throws OAuth\Exception
+     */
 	public function loadUserFollowers(
 		string $username,
 		int $count = 5000,
@@ -213,12 +230,17 @@ class Twitter
 		], $cacheExpiry);
 	}
 
-
-	/**
-	 * Returns list of followers of a given user.
-	 * https://dev.twitter.com/rest/reference/get/followers/list
-	 * @throws Exception
-	 */
+    /**
+     * Returns list of followers of a given user.
+     * https://dev.twitter.com/rest/reference/get/followers/list
+     * @param string $username
+     * @param int $count
+     * @param int $cursor
+     * @param null $cacheExpiry
+     * @return stdClass
+     * @throws Exception
+     * @throws OAuth\Exception
+     */
 	public function loadUserFollowersList(
 		string $username,
 		int $count = 200,
@@ -232,61 +254,69 @@ class Twitter
 		], $cacheExpiry);
 	}
 
-
-	/**
-	 * Destroys status.
-	 * @param  int|string  $id  status to be destroyed
-	 * @throws Exception
-	 */
+    /**
+     * Destroys status.
+     * @param int|string $id status to be destroyed
+     * @return false
+     * @throws Exception
+     * @throws OAuth\Exception
+     */
 	public function destroy($id)
 	{
 		$res = $this->request("statuses/destroy/$id", 'POST', ['id' => $id]);
 		return $res->id ?: false;
 	}
 
-
-	/**
-	 * Retrieves a single status.
-	 * @param  int|string  $id  status to be retrieved
-	 * @throws Exception
-	 */
+    /**
+     * Retrieves a single status.
+     * @param int|string $id status to be retrieved
+     * @return array|bool|mixed
+     * @throws Exception
+     * @throws OAuth\Exception
+     */
 	public function get($id)
 	{
 		$res = $this->request("statuses/show/$id", 'GET');
 		return $res;
 	}
 
-
-	/**
-	 * Returns tweets that match a specified query.
-	 * https://dev.twitter.com/rest/reference/get/search/tweets
-	 * @param  string|array
-	 * @throws Exception
-	 * @return stdClass|stdClass[]
-	 */
+    /**
+     * Returns tweets that match a specified query.
+     * https://dev.twitter.com/rest/reference/get/search/tweets
+     * @param string|array
+     * @param bool $full
+     * @return stdClass|stdClass[]
+     * @throws Exception
+     * @throws OAuth\Exception
+     */
 	public function search($query, bool $full = false)
 	{
 		$res = $this->request('search/tweets', 'GET', is_array($query) ? $query : ['q' => $query]);
 		return $full ? $res : $res->statuses;
 	}
 
-
-	/**
-	 * Retrieves the top 50 trending topics for a specific WOEID.
-	 * @param  int|string  $WOEID  Where On Earth IDentifier
-	 */
+    /**
+     * Retrieves the top 50 trending topics for a specific WOEID.
+     * @param int|string $WOEID Where On Earth IDentifier
+     * @return array
+     * @throws Exception
+     * @throws OAuth\Exception
+     */
 	public function getTrends(int $WOEID): array
 	{
 		return $this->request("trends/place.json?id=$WOEID", 'GET');
 	}
 
-
-	/**
-	 * Process HTTP request.
-	 * @param  string  $method  GET|POST|JSONPOST|DELETE
-	 * @return mixed
-	 * @throws Exception
-	 */
+    /**
+     * Process HTTP request.
+     * @param string $resource
+     * @param string $method GET|POST|JSONPOST|DELETE
+     * @param array $data
+     * @param array $files
+     * @return mixed
+     * @throws Exception
+     * @throws OAuth\Exception
+     */
 	public function request(string $resource, string $method, array $data = [], array $files = [])
 	{
 		if (!strpos($resource, '://')) {
@@ -345,19 +375,31 @@ class Twitter
 
 		$curl = curl_init();
 		curl_setopt_array($curl, $options);
+        /**
+         * The result of the request (Raw Body)
+         */
 		$result = curl_exec($curl);
+        /**
+         * Get the Content-Type from the Response;
+         */
+        $contentType = curl_getinfo($curl, CURLINFO_CONTENT_TYPE);
+        /**
+         * Get the Response Code from the Request.
+         */
+        $code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 		if (curl_errno($curl)) {
 			throw new Exception('Server error: ' . curl_error($curl));
 		}
-
-		if (strpos(curl_getinfo($curl, CURLINFO_CONTENT_TYPE), 'application/json') !== false) {
+        /**
+         * If JSON was returned, decode and return.
+         */
+		if (strpos($contentType, 'application/json') !== false) {
 			$payload = @json_decode($result, false, 128, JSON_BIGINT_AS_STRING); // intentionally @
 			if ($payload === false) {
 				throw new Exception('Invalid server response');
 			}
 		}
 
-		$code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 		if ($code >= 400) {
 			throw new Exception(
 				$payload->errors[0]->message ?? "Server error #$code with answer $result",
@@ -366,15 +408,59 @@ class Twitter
 		} elseif ($code === 204) {
 			$payload = true;
 		}
-
-		return $payload;
+        /**
+         * If the payload isn't null or undefined.
+         */
+        if (isset($payload)) {
+            return $payload;
+        }
+        /**
+         * There are instances where the Twitter API returns text/html or urlencoded responses.
+         * @link https://developer.twitter.com/en/docs/authentication/api-reference/request_token
+         * Convert the encoded URL to an Array and return it.
+         */
+        else if ($code === 200 &&
+            (strpos($contentType, 'application/x-www-form-urlencoded') !== false) ||
+            (strpos($contentType, 'text/html') !== false)) {
+            $res = array();
+            /**
+             * Process the url-encoded data and convert it into an array.
+             */
+            foreach (explode("&", $result) as $x) {
+                $y = explode("=", $x);
+                $res[$y[0]] = $y[1];
+            }
+            return $res;
+        }
+        else {
+            throw new Exception('Invalid server response (Not Valid)');
+        }
 	}
 
+    /**
+     * @param $oauth_callback | The Callback URL defined within your Application Settings
+     * @link https://developer.twitter.com/en/docs/apps/callback-urls
+     * @link https://developer.twitter.com/en/docs/authentication/api-reference/request_token
+     * @return array|bool|mixed
+     */
+    public function getRequestToken($oauth_callback) {
+        $resource = 'https://api.twitter.com/oauth/request_token';
+        try {
+            return $this->request($resource, 'POST', ['oauth_callback' => $oauth_callback]);
+        } catch (Exception $e) {
+            return false;
+        }
+    }
 
-	/**
-	 * Cached HTTP request.
-	 * @return stdClass|stdClass[]
-	 */
+    /**
+     * Cached HTTP request.
+     * @param string $resource
+     * @param array $data
+     * @param null $cacheExpire
+     * @return stdClass|stdClass[]
+     * @throws Exception
+     * @throws OAuth\Exception
+     */
 	public function cachedRequest(string $resource, array $data = [], $cacheExpire = null)
 	{
 		if (!self::$cacheDir) {
@@ -409,7 +495,6 @@ class Twitter
 			throw $e;
 		}
 	}
-
 
 	/**
 	 * Makes twitter links, @usernames and #hashtags clickable.
@@ -447,11 +532,7 @@ class Twitter
 	}
 }
 
-
-
 /**
  * An exception generated by Twitter.
  */
-class Exception extends \Exception
-{
-}
+class Exception extends \Exception {}
