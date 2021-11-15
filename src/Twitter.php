@@ -439,9 +439,10 @@ class Twitter
 
     /**
      * @param $oauth_callback | The Callback URL defined within your Application Settings
+     * @return array|bool|mixed
+     * @throws OAuth\Exception
      * @link https://developer.twitter.com/en/docs/apps/callback-urls
      * @link https://developer.twitter.com/en/docs/authentication/api-reference/request_token
-     * @return array|bool|mixed
      */
     public function getRequestToken($oauth_callback) {
         $resource = 'https://api.twitter.com/oauth/request_token';
