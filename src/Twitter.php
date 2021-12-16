@@ -468,10 +468,14 @@ class Twitter
         }
     }
 
-    public function invalidateToken($access_token, $access_token_secret) {
-        $resource = "https://api.twitter.com/oauth/invalidate_token";
+    /**
+     * @return array|bool|mixed|string
+     * @throws OAuth\Exception
+     */
+    public function invalidateAccessToken() {
+        $resource = "https://api.twitter.com/1.1/oauth/invalidate_token";
         try {
-            return $this->request($resource, 'POST', ['access_token' => $access_token, 'access_token_secret' => $access_token_secret]);
+            return $this->request($resource, 'POST', ['access_token' => $this->token->key, 'access_token_secret' => $this->token->secret]);
         } catch (Exception $e) {
             return $e->getMessage();
         }
