@@ -21,51 +21,51 @@ use stdClass;
  */
 class Twitter
 {
-	public const ME = 1;
-	public const ME_AND_FRIENDS = 2;
-	public const REPLIES = 3;
-	public const RETWEETS = 128; // include retweets?
+    public const ME = 1;
+    public const ME_AND_FRIENDS = 2;
+    public const REPLIES = 3;
+    public const RETWEETS = 128; // include retweets?
 
-	private const API_URL = 'https://api.twitter.com/1.1/';
+    private const API_URL = 'https://api.twitter.com/1.1/';
 
-	/** @var int */
-	public static $cacheExpire = '30 minutes';
+    /** @var int */
+    public static $cacheExpire = '30 minutes';
 
-	/** @var string */
-	public static $cacheDir;
+    /** @var string */
+    public static $cacheDir;
 
-	/** @var array */
-	public $httpOptions = [
-		CURLOPT_TIMEOUT => 20,
-		CURLOPT_SSL_VERIFYPEER => 0,
-		CURLOPT_USERAGENT => 'Twitter for PHP',
-	];
+    /** @var array */
+    public $httpOptions = [
+        CURLOPT_TIMEOUT => 20,
+        CURLOPT_SSL_VERIFYPEER => 0,
+        CURLOPT_USERAGENT => 'Twitter for PHP',
+    ];
 
-	/** @var OAuth\Consumer */
-	private $consumer;
+    /** @var OAuth\Consumer */
+    private $consumer;
 
-	/** @var OAuth\Token */
-	private $token;
+    /** @var OAuth\Token */
+    private $token;
 
-	/**
-	 * Creates object using consumer and access keys.
-	 * @throws Exception when CURL extension is not loaded
-	 */
-	public function __construct(
-		string $consumerKey,
-		string $consumerSecret,
-		string $accessToken = null,
-		string $accessTokenSecret = null
-	) {
-		if (!extension_loaded('curl')) {
-			throw new Exception('PHP extension CURL is not loaded.');
-		}
+    /**
+     * Creates object using consumer and access keys.
+     * @throws Exception when CURL extension is not loaded
+     */
+    public function __construct(
+        string $consumerKey,
+        string $consumerSecret,
+        string $accessToken = null,
+        string $accessTokenSecret = null
+    ) {
+        if (!extension_loaded('curl')) {
+            throw new Exception('PHP extension CURL is not loaded.');
+        }
 
-		$this->consumer = new OAuth\Consumer($consumerKey, $consumerSecret);
-		if ($accessToken && $accessTokenSecret) {
-			$this->token = new OAuth\Token($accessToken, $accessTokenSecret);
-		}
-	}
+        $this->consumer = new OAuth\Consumer($consumerKey, $consumerSecret);
+        if ($accessToken && $accessTokenSecret) {
+            $this->token = new OAuth\Token($accessToken, $accessTokenSecret);
+        }
+    }
 
     /**
      * Tests if user credentials are valid.
@@ -73,19 +73,19 @@ class Twitter
      * @throws Exception
      * @throws OAuth\Exception
      */
-	public function authenticate(): bool
-	{
-		try {
-			$res = $this->request('account/verify_credentials', 'GET');
-			return !empty($res->id);
+    public function authenticate(): bool
+    {
+        try {
+            $res = $this->request('account/verify_credentials', 'GET');
+            return !empty($res->id);
 
-		} catch (Exception $e) {
-			if ($e->getCode() === 401) {
-				return false;
-			}
-			throw $e;
-		}
-	}
+        } catch (Exception $e) {
+            if ($e->getCode() === 401) {
+                return false;
+            }
+            throw $e;
+        }
+    }
 
     /**
      * Sends message to the Twitter.
@@ -97,24 +97,24 @@ class Twitter
      * @throws Exception
      * @throws OAuth\Exception
      */
-	public function send(string $message, $mediaPath = null, array $options = []): stdClass
-	{
-		$mediaIds = [];
-		foreach ((array) $mediaPath as $item) {
-			$res = $this->request(
-				'https://upload.twitter.com/1.1/media/upload.json',
-				'POST',
-				[],
-				['media' => $item]
-			);
-			$mediaIds[] = $res->media_id_string;
-		}
-		return $this->request(
-			'statuses/update',
-			'POST',
-			$options + ['status' => $message, 'media_ids' => implode(',', $mediaIds) ?: null]
-		);
-	}
+    public function send(string $message, $mediaPath = null, array $options = []): stdClass
+    {
+        $mediaIds = [];
+        foreach ((array) $mediaPath as $item) {
+            $res = $this->request(
+                'https://upload.twitter.com/1.1/media/upload.json',
+                'POST',
+                [],
+                ['media' => $item]
+            );
+            $mediaIds[] = $res->media_id_string;
+        }
+        return $this->request(
+            'statuses/update',
+            'POST',
+            $options + ['status' => $message, 'media_ids' => implode(',', $mediaIds) ?: null]
+        );
+    }
 
     /**
      * Sends a direct message to the specified user.
@@ -125,20 +125,20 @@ class Twitter
      * @throws Exception
      * @throws OAuth\Exception
      */
-	public function sendDirectMessage(string $username, string $message): stdClass
-	{
-		return $this->request(
-			'direct_messages/events/new',
-			'JSONPOST',
-			['event' => [
-				'type' => 'message_create',
-				'message_create' => [
-					'target' => ['recipient_id' => $this->loadUserInfo($username)->id_str],
-					'message_data' => ['text' => $message],
-				],
-			]]
-		);
-	}
+    public function sendDirectMessage(string $username, string $message): stdClass
+    {
+        return $this->request(
+            'direct_messages/events/new',
+            'JSONPOST',
+            ['event' => [
+                'type' => 'message_create',
+                'message_create' => [
+                    'target' => ['recipient_id' => $this->loadUserInfo($username)->id_str],
+                    'message_data' => ['text' => $message],
+                ],
+            ]]
+        );
+    }
 
     /**
      * Follows a user on Twitter.
@@ -148,10 +148,10 @@ class Twitter
      * @throws Exception
      * @throws OAuth\Exception
      */
-	public function follow(string $username): stdClass
-	{
-		return $this->request('friendships/create', 'POST', ['screen_name' => $username]);
-	}
+    public function follow(string $username): stdClass
+    {
+        return $this->request('friendships/create', 'POST', ['screen_name' => $username]);
+    }
 
     /**
      * Returns the most recent statuses.
@@ -163,22 +163,22 @@ class Twitter
      * @throws Exception
      * @throws OAuth\Exception
      */
-	public function load(int $flags = self::ME, int $count = 20, array $data = null): array
-	{
-		static $timelines = [
-			self::ME => 'user_timeline',
-			self::ME_AND_FRIENDS => 'home_timeline',
-			self::REPLIES => 'mentions_timeline',
-		];
-		if (!isset($timelines[$flags & 3])) {
-			throw new \InvalidArgumentException;
-		}
+    public function load(int $flags = self::ME, int $count = 20, array $data = null): array
+    {
+        static $timelines = [
+            self::ME => 'user_timeline',
+            self::ME_AND_FRIENDS => 'home_timeline',
+            self::REPLIES => 'mentions_timeline',
+        ];
+        if (!isset($timelines[$flags & 3])) {
+            throw new \InvalidArgumentException;
+        }
 
-		return $this->cachedRequest('statuses/' . $timelines[$flags & 3], (array) $data + [
-			'count' => $count,
-			'include_rts' => $flags & self::RETWEETS ? 1 : 0,
-		]);
-	}
+        return $this->cachedRequest('statuses/' . $timelines[$flags & 3], (array) $data + [
+                'count' => $count,
+                'include_rts' => $flags & self::RETWEETS ? 1 : 0,
+            ]);
+    }
 
     /**
      * Returns information of a given user.
@@ -188,10 +188,10 @@ class Twitter
      * @throws Exception
      * @throws OAuth\Exception
      */
-	public function loadUserInfo(string $username): stdClass
-	{
-		return $this->cachedRequest('users/show', ['screen_name' => $username]);
-	}
+    public function loadUserInfo(string $username): stdClass
+    {
+        return $this->cachedRequest('users/show', ['screen_name' => $username]);
+    }
 
     /**
      * Returns information of a given user by id.
@@ -201,10 +201,10 @@ class Twitter
      * @throws Exception
      * @throws OAuth\Exception
      */
-	public function loadUserInfoById(string $id): stdClass
-	{
-		return $this->cachedRequest('users/show', ['user_id' => $id]);
-	}
+    public function loadUserInfoById(string $id): stdClass
+    {
+        return $this->cachedRequest('users/show', ['user_id' => $id]);
+    }
 
     /**
      * Returns IDs of followers of a given user.
@@ -217,18 +217,18 @@ class Twitter
      * @throws Exception
      * @throws OAuth\Exception
      */
-	public function loadUserFollowers(
-		string $username,
-		int $count = 5000,
-		int $cursor = -1,
-		$cacheExpiry = null
-	): stdClass {
-		return $this->cachedRequest('followers/ids', [
-			'screen_name' => $username,
-			'count' => $count,
-			'cursor' => $cursor,
-		], $cacheExpiry);
-	}
+    public function loadUserFollowers(
+        string $username,
+        int $count = 5000,
+        int $cursor = -1,
+               $cacheExpiry = null
+    ): stdClass {
+        return $this->cachedRequest('followers/ids', [
+            'screen_name' => $username,
+            'count' => $count,
+            'cursor' => $cursor,
+        ], $cacheExpiry);
+    }
 
     /**
      * Returns list of followers of a given user.
@@ -241,18 +241,18 @@ class Twitter
      * @throws Exception
      * @throws OAuth\Exception
      */
-	public function loadUserFollowersList(
-		string $username,
-		int $count = 200,
-		int $cursor = -1,
-		$cacheExpiry = null
-	): stdClass {
-		return $this->cachedRequest('followers/list', [
-			'screen_name' => $username,
-			'count' => $count,
-			'cursor' => $cursor,
-		], $cacheExpiry);
-	}
+    public function loadUserFollowersList(
+        string $username,
+        int $count = 200,
+        int $cursor = -1,
+               $cacheExpiry = null
+    ): stdClass {
+        return $this->cachedRequest('followers/list', [
+            'screen_name' => $username,
+            'count' => $count,
+            'cursor' => $cursor,
+        ], $cacheExpiry);
+    }
 
     /**
      * Destroys status.
@@ -261,11 +261,11 @@ class Twitter
      * @throws Exception
      * @throws OAuth\Exception
      */
-	public function destroy($id)
-	{
-		$res = $this->request("statuses/destroy/$id", 'POST', ['id' => $id]);
-		return $res->id ?: false;
-	}
+    public function destroy($id)
+    {
+        $res = $this->request("statuses/destroy/$id", 'POST', ['id' => $id]);
+        return $res->id ?: false;
+    }
 
     /**
      * Retrieves a single status.
@@ -274,11 +274,11 @@ class Twitter
      * @throws Exception
      * @throws OAuth\Exception
      */
-	public function get($id)
-	{
-		$res = $this->request("statuses/show/$id", 'GET');
-		return $res;
-	}
+    public function get($id)
+    {
+        $res = $this->request("statuses/show/$id", 'GET');
+        return $res;
+    }
 
     /**
      * Returns tweets that match a specified query.
@@ -289,11 +289,11 @@ class Twitter
      * @throws Exception
      * @throws OAuth\Exception
      */
-	public function search($query, bool $full = false)
-	{
-		$res = $this->request('search/tweets', 'GET', is_array($query) ? $query : ['q' => $query]);
-		return $full ? $res : $res->statuses;
-	}
+    public function search($query, bool $full = false)
+    {
+        $res = $this->request('search/tweets', 'GET', is_array($query) ? $query : ['q' => $query]);
+        return $full ? $res : $res->statuses;
+    }
 
     /**
      * Retrieves the top 50 trending topics for a specific WOEID.
@@ -302,10 +302,10 @@ class Twitter
      * @throws Exception
      * @throws OAuth\Exception
      */
-	public function getTrends(int $WOEID): array
-	{
-		return $this->request("trends/place.json?id=$WOEID", 'GET');
-	}
+    public function getTrends(int $WOEID): array
+    {
+        return $this->request("trends/place.json?id=$WOEID", 'GET');
+    }
 
     /**
      * Process HTTP request.
@@ -317,68 +317,68 @@ class Twitter
      * @throws Exception
      * @throws OAuth\Exception
      */
-	public function request(string $resource, string $method, array $data = [], array $files = [])
-	{
-		if (!strpos($resource, '://')) {
-			if (!strpos($resource, '.')) {
-				$resource .= '.json';
-			}
-			$resource = self::API_URL . $resource;
-		}
+    public function request(string $resource, string $method, array $data = [], array $files = [])
+    {
+        if (!strpos($resource, '://')) {
+            if (!strpos($resource, '.')) {
+                $resource .= '.json';
+            }
+            $resource = self::API_URL . $resource;
+        }
 
-		foreach ($data as $key => $val) {
-			if ($val === null) {
-				unset($data[$key]);
-			}
-		}
+        foreach ($data as $key => $val) {
+            if ($val === null) {
+                unset($data[$key]);
+            }
+        }
 
-		foreach ($files as $key => $file) {
-			if (!is_file($file)) {
-				throw new Exception("Cannot read the file $file. Check if file exists on disk and check its permissions.");
-			}
-			$data[$key] = new \CURLFile($file);
-		}
+        foreach ($files as $key => $file) {
+            if (!is_file($file)) {
+                throw new Exception("Cannot read the file $file. Check if file exists on disk and check its permissions.");
+            }
+            $data[$key] = new \CURLFile($file);
+        }
 
-		$headers = ['Expect:'];
+        $headers = ['Expect:'];
 
-		if ($method === 'JSONPOST') {
-			$method = 'POST';
-			$data = json_encode($data);
-			$headers[] = 'Content-Type: application/json';
+        if ($method === 'JSONPOST') {
+            $method = 'POST';
+            $data = json_encode($data);
+            $headers[] = 'Content-Type: application/json';
 
-		} elseif (($method === 'GET' || $method === 'DELETE') && $data) {
-			$resource .= '?' . http_build_query($data, '', '&');
-		}
+        } elseif (($method === 'GET' || $method === 'POST') && $data) {
+            $resource .= '?' . http_build_query($data, '', '&');
+        }
 
-		$request = OAuth\Request::from_consumer_and_token($this->consumer, $this->token, $method, $resource);
-		$request->sign_request(new OAuth\SignatureMethod_HMAC_SHA1, $this->consumer, $this->token);
-		$headers[] = $request->to_header();
+        $request = OAuth\Request::from_consumer_and_token($this->consumer, $this->token, $method, $resource);
+        $request->sign_request(new OAuth\SignatureMethod_HMAC_SHA1, $this->consumer, $this->token);
+        $headers[] = $request->to_header();
 
-		$options = [
-			CURLOPT_URL => $resource,
-			CURLOPT_HEADER => false,
-			CURLOPT_RETURNTRANSFER => true,
-			CURLOPT_HTTPHEADER => $headers,
-		] + $this->httpOptions;
+        $options = [
+                CURLOPT_URL => $resource,
+                CURLOPT_HEADER => false,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_HTTPHEADER => $headers,
+            ] + $this->httpOptions;
 
-		if ($method === 'POST') {
-			$options += [
-				CURLOPT_POST => true,
-				CURLOPT_POSTFIELDS => $data,
-				CURLOPT_SAFE_UPLOAD => true,
-			];
-		} elseif ($method === 'DELETE') {
-			$options += [
-				CURLOPT_CUSTOMREQUEST => 'DELETE',
-			];
-		}
+        if ($method === 'POST') {
+            $options += [
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => $data,
+                CURLOPT_SAFE_UPLOAD => true,
+            ];
+        } elseif ($method === 'DELETE') {
+            $options += [
+                CURLOPT_CUSTOMREQUEST => 'DELETE',
+            ];
+        }
 
-		$curl = curl_init();
-		curl_setopt_array($curl, $options);
+        $curl = curl_init();
+        curl_setopt_array($curl, $options);
         /**
          * The result of the request (Raw Body)
          */
-		$result = curl_exec($curl);
+        $result = curl_exec($curl);
         /**
          * Get the Content-Type from the Response;
          */
@@ -387,27 +387,27 @@ class Twitter
          * Get the Response Code from the Request.
          */
         $code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-		if (curl_errno($curl)) {
-			throw new Exception('Server error: ' . curl_error($curl));
-		}
+        if (curl_errno($curl)) {
+            throw new Exception('Server error: ' . curl_error($curl));
+        }
         /**
          * If JSON was returned, decode and return.
          */
-		if (strpos($contentType, 'application/json') !== false) {
-			$payload = @json_decode($result, false, 128, JSON_BIGINT_AS_STRING); // intentionally @
-			if ($payload === false) {
-				throw new Exception('Invalid server response');
-			}
-		}
+        if (strpos($contentType, 'application/json') !== false) {
+            $payload = @json_decode($result, false, 128, JSON_BIGINT_AS_STRING); // intentionally @
+            if ($payload === false) {
+                throw new Exception('Invalid server response');
+            }
+        }
 
-		if ($code >= 400) {
-			throw new Exception(
-				$payload->errors[0]->message ?? "Server error #$code with answer $result",
-				$code
-			);
-		} elseif ($code === 204) {
-			$payload = true;
-		}
+        if ($code >= 400) {
+            throw new Exception(
+                $payload->errors[0]->message ?? "Server error #$code with answer $result",
+                $code
+            );
+        } elseif ($code === 204) {
+            $payload = true;
+        }
         /**
          * If the payload isn't null or undefined.
          */
@@ -435,7 +435,7 @@ class Twitter
         else {
             throw new Exception('Invalid server response (Not Valid)');
         }
-	}
+    }
 
     /**
      * @param $oauth_callback | The Callback URL defined within your Application Settings
@@ -454,6 +454,30 @@ class Twitter
     }
 
     /**
+     * @param $oauth_token
+     * @param $oauth_verifier
+     * @return array|bool|mixed
+     * @throws OAuth\Exception
+     */
+    public function getAccessToken($oauth_token, $oauth_verifier) {
+        $resource = "https://api.twitter.com/oauth/access_token";
+        try {
+            return $this->request($resource, 'POST', ['oauth_verifier' => $oauth_verifier, 'oauth_token' => $oauth_token]);
+        } catch (Exception $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function invalidateToken($access_token, $access_token_secret) {
+        $resource = "https://api.twitter.com/oauth/invalidate_token";
+        try {
+            return $this->request($resource, 'POST', ['access_token' => $access_token, 'access_token_secret' => $access_token_secret]);
+        } catch (Exception $e) {
+            return $e->getMessage();
+        }
+    }
+
+    /**
      * Cached HTTP request.
      * @param string $resource
      * @param array $data
@@ -462,75 +486,75 @@ class Twitter
      * @throws Exception
      * @throws OAuth\Exception
      */
-	public function cachedRequest(string $resource, array $data = [], $cacheExpire = null)
-	{
-		if (!self::$cacheDir) {
-			return $this->request($resource, 'GET', $data);
-		}
-		if ($cacheExpire === null) {
-			$cacheExpire = self::$cacheExpire;
-		}
+    public function cachedRequest(string $resource, array $data = [], $cacheExpire = null)
+    {
+        if (!self::$cacheDir) {
+            return $this->request($resource, 'GET', $data);
+        }
+        if ($cacheExpire === null) {
+            $cacheExpire = self::$cacheExpire;
+        }
 
-		$cacheFile = self::$cacheDir
-			. '/twitter.'
-			. md5($resource . json_encode($data) . serialize([$this->consumer, $this->token]))
-			. '.json';
+        $cacheFile = self::$cacheDir
+            . '/twitter.'
+            . md5($resource . json_encode($data) . serialize([$this->consumer, $this->token]))
+            . '.json';
 
-		$cache = @json_decode((string) @file_get_contents($cacheFile)); // intentionally @
-		$expiration = is_string($cacheExpire)
-			? strtotime($cacheExpire) - time()
-			: $cacheExpire;
-		if ($cache && @filemtime($cacheFile) + $expiration > time()) { // intentionally @
-			return $cache;
-		}
+        $cache = @json_decode((string) @file_get_contents($cacheFile)); // intentionally @
+        $expiration = is_string($cacheExpire)
+            ? strtotime($cacheExpire) - time()
+            : $cacheExpire;
+        if ($cache && @filemtime($cacheFile) + $expiration > time()) { // intentionally @
+            return $cache;
+        }
 
-		try {
-			$payload = $this->request($resource, 'GET', $data);
-			file_put_contents($cacheFile, json_encode($payload));
-			return $payload;
+        try {
+            $payload = $this->request($resource, 'GET', $data);
+            file_put_contents($cacheFile, json_encode($payload));
+            return $payload;
 
-		} catch (Exception $e) {
-			if ($cache) {
-				return $cache;
-			}
-			throw $e;
-		}
-	}
+        } catch (Exception $e) {
+            if ($cache) {
+                return $cache;
+            }
+            throw $e;
+        }
+    }
 
-	/**
-	 * Makes twitter links, @usernames and #hashtags clickable.
-	 */
-	public static function clickable(stdClass $status): string
-	{
-		$all = [];
-		foreach ($status->entities->hashtags as $item) {
-			$all[$item->indices[0]] = ["https://twitter.com/search?q=%23$item->text", "#$item->text", $item->indices[1]];
-		}
-		foreach ($status->entities->urls as $item) {
-			if (!isset($item->expanded_url)) {
-				$all[$item->indices[0]] = [$item->url, $item->url, $item->indices[1]];
-			} else {
-				$all[$item->indices[0]] = [$item->expanded_url, $item->display_url, $item->indices[1]];
-			}
-		}
-		foreach ($status->entities->user_mentions as $item) {
-			$all[$item->indices[0]] = ["https://twitter.com/$item->screen_name", "@$item->screen_name", $item->indices[1]];
-		}
-		if (isset($status->entities->media)) {
-			foreach ($status->entities->media as $item) {
-				$all[$item->indices[0]] = [$item->url, $item->display_url, $item->indices[1]];
-			}
-		}
+    /**
+     * Makes twitter links, @usernames and #hashtags clickable.
+     */
+    public static function clickable(stdClass $status): string
+    {
+        $all = [];
+        foreach ($status->entities->hashtags as $item) {
+            $all[$item->indices[0]] = ["https://twitter.com/search?q=%23$item->text", "#$item->text", $item->indices[1]];
+        }
+        foreach ($status->entities->urls as $item) {
+            if (!isset($item->expanded_url)) {
+                $all[$item->indices[0]] = [$item->url, $item->url, $item->indices[1]];
+            } else {
+                $all[$item->indices[0]] = [$item->expanded_url, $item->display_url, $item->indices[1]];
+            }
+        }
+        foreach ($status->entities->user_mentions as $item) {
+            $all[$item->indices[0]] = ["https://twitter.com/$item->screen_name", "@$item->screen_name", $item->indices[1]];
+        }
+        if (isset($status->entities->media)) {
+            foreach ($status->entities->media as $item) {
+                $all[$item->indices[0]] = [$item->url, $item->display_url, $item->indices[1]];
+            }
+        }
 
-		krsort($all);
-		$s = $status->full_text ?? $status->text;
-		foreach ($all as $pos => $item) {
-			$s = iconv_substr($s, 0, $pos, 'UTF-8')
-				. '<a href="' . htmlspecialchars($item[0]) . '">' . htmlspecialchars($item[1]) . '</a>'
-				. iconv_substr($s, $item[2], iconv_strlen($s, 'UTF-8'), 'UTF-8');
-		}
-		return $s;
-	}
+        krsort($all);
+        $s = $status->full_text ?? $status->text;
+        foreach ($all as $pos => $item) {
+            $s = iconv_substr($s, 0, $pos, 'UTF-8')
+                . '<a href="' . htmlspecialchars($item[0]) . '">' . htmlspecialchars($item[1]) . '</a>'
+                . iconv_substr($s, $item[2], iconv_strlen($s, 'UTF-8'), 'UTF-8');
+        }
+        return $s;
+    }
 }
 
 /**
