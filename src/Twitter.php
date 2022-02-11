@@ -348,6 +348,8 @@ class Twitter
 
         } elseif (($method === 'GET' || $method === 'POST') && $data) {
             $resource .= '?' . http_build_query($data, '', '&');
+        } elseif ($method == 'AUTHPOST') {
+            $method = 'POST';
         }
 
         $request = OAuth\Request::from_consumer_and_token($this->consumer, $this->token, $method, $resource);
@@ -445,10 +447,11 @@ class Twitter
      * @link https://developer.twitter.com/en/docs/authentication/api-reference/request_token
      */
     public function getRequestToken($oauth_callback) {
-        $resource = 'https://api.twitter.com/oauth/request_token';
+        $resource = 'https://api.twitter.com/oauth/request_token?oauth_callback=' . urlencode($oauth_callback);
         try {
-            return $this->request($resource, 'POST', ['oauth_callback' => $oauth_callback]);
+            return $this->request($resource, 'AUTHPOST');
         } catch (Exception $e) {
+            print($e->getMessage());
             return false;
         }
     }
