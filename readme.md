@@ -113,6 +113,27 @@ if (!$twitter->authenticate()) {
 }
 ```
 
+The `getRequestToken()` method allows a Consumer application to obtain an OAuth Request Token to request user authorization:
+ - Documentation/Use-Cases: https://developer.twitter.com/en/docs/authentication/api-reference/request_token
+ - Define a Callback URL in your Twitter Application (Required): https://developer.twitter.com/en/docs/apps/callback-urls
+```php
+# You can Initialize a new Twitter object using only the Consumer Key and Secret
+$this->twitter = new Twitter($consumerKey, $consumerSecret);
+# Call the getRequestToken() using the callback URL defined in your twitter application.
+$response = $this->twitter->getRequestToken('https://localhost.com/twitter-callback-url');
+```
+
+Example Response:
+
+```php 
+{
+    "oauth_token": "x-oFdAAAAAABVLnXXXXXXXX_XXX",
+    "oauth_token_secret": "A810fifujUZXXXXXXXXXXXXXXXXXXXXX",
+    "oauth_callback_confirmed": "true"
+}
+```
+
+
 Other commands
 --------------
 
