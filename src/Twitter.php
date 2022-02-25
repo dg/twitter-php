@@ -440,19 +440,28 @@ class Twitter
     }
 
     /**
-     * @param $oauth_callback | The Callback URL defined within your Application Settings
-     * @return array|bool|mixed
-     * @throws OAuth\Exception
      * @link https://developer.twitter.com/en/docs/apps/callback-urls
      * @link https://developer.twitter.com/en/docs/authentication/api-reference/request_token
+     * @param $oauth_callback | The Callback URL defined within your Application Settings
+     * @return array|bool|mixed
+     * @throws Exception
+     * @throws OAuth\Exception
      */
     public function getRequestToken($oauth_callback) {
         $resource = 'https://api.twitter.com/oauth/request_token?oauth_callback=' . urlencode($oauth_callback);
         try {
-            return $this->request($resource, 'AUTHPOST');
+            /**
+             * This is a fault in Twitter API requiring it to be sent  as a POST
+             * While at the same time using Query Parameters.
+             * Otherwise the callback is not appended, and it goes with the default callback
+             * set within Twitter Dev portal, meaning you can only use one callback per Environment.
+             */
+            return $this->request(
+                $resource,
+                'AUTHPOST'
+            );
         } catch (Exception $e) {
-            print($e->getMessage());
-            return false;
+            throw new Exception($e->getMessage(), $e->getCode());
         }
     }
 
@@ -460,27 +469,49 @@ class Twitter
      * @param $oauth_token
      * @param $oauth_verifier
      * @return array|bool|mixed
+     * @throws Exception
      * @throws OAuth\Exception
      */
     public function getAccessToken($oauth_token, $oauth_verifier) {
         $resource = "https://api.twitter.com/oauth/access_token";
         try {
-            return $this->request($resource, 'POST', ['oauth_verifier' => $oauth_verifier, 'oauth_token' => $oauth_token]);
+            return $this->request(
+                $resource,
+                'POST',
+                [
+                    'oauth_verifier' => $oauth_verifier,
+                    'oauth_token' => $oauth_token
+                ]
+            );
         } catch (Exception $e) {
-            return $e->getMessage();
+            throw new Exception($e->getMessage(), $e->getCode());
         }
     }
 
     /**
      * @return array|bool|mixed|string
+     * @throws Exception
      * @throws OAuth\Exception
+     * Twitter Code: 89 = Invalid or expired token. (HTTP 401)
      */
     public function invalidateAccessToken() {
         $resource = "https://api.twitter.com/1.1/oauth/invalidate_token";
         try {
-            return $this->request($resource, 'POST', ['access_token' => $this->token->key, 'access_token_secret' => $this->token->secret]);
+            return $this->request(
+                $resource,
+                'POST',
+                [
+                    'access_token' => $this->token->key,
+                    'access_token_secret' => $this->token->secret
+                ]
+            );
         } catch (Exception $e) {
-            return $e->getMessage();
+            /**
+             * If the token has already been invalidated, or it's expired
+             * Returns HTTP 401, use this to know when it is invalid or expired.
+             * Any other error means that something unexpected happened. (404, 500, etc)
+             */
+            throw new Exception($e->getMessage(), $e->getCode());
         }
     }
 
