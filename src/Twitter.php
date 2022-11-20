@@ -138,8 +138,54 @@ class Twitter
 
 
 	/**
+	 * Unfollows a user on Twitter.
+	 * https://developer.twitter.com/en/docs/accounts-and-users/follow-search-get-users/api-reference/post-friendships-destroy
+	 * @throws Exception
+	 */
+	public function unfriend(string $username = null, int $userId = null): stdClass
+	{
+	    if (!$username) {
+            $data = ['screen_name' => $username];
+        }
+	    if (!$userId) {
+            $data = ['screen_name' => $userId];
+        }
+	    if (!$userId && !$username) {
+            throw new \InvalidArgumentException('Username OR userId is required to destroy a friendship!');
+        }
+		return $this->request('friendships/destroy', 'POST', $data);
+	}
+
+    /**
+     * Create a new list
+     *
+     * @param $listName
+     * @param string $mode
+     * @param null $description
+     * @return mixed
+     * @throws Exception
+     */
+	public function createList($listName, $mode = 'private', $description = null)
+    {
+        return $this->request('lists/create', 'POST', ['name' => $listName, 'mode' => $mode]);
+    }
+
+    /**
+     * Add members (comma separtated screen names) to a pre-existing list
+     *
+     * @param $listId
+     * @param array $members
+     * @return mixed
+     * @throws Exception
+     */
+    public function addMembersToList($listId, array $members)
+    {
+        return $this->request('lists/members/create_all', 'POST', ['list_id' => $listId, 'screen_name' => implode(',', $members)]);
+    }
+
+	/**
 	 * Follows a user on Twitter.
-	 * https://dev.twitter.com/rest/reference/post/friendships/create
+	 * https://developer.twitter.com/en/docs/accounts-and-users/follow-search-get-users/api-reference/post-friendships-create
 	 * @throws Exception
 	 */
 	public function follow(string $username): stdClass
@@ -196,6 +242,28 @@ class Twitter
 
 
 	/**
+	 * Returns IDs of friends of a given user.
+	 * https://developer.twitter.com/en/docs/accounts-and-users/follow-search-get-users/api-reference/get-friends-list
+	 * @throws Exception
+	 */
+	public function loadUserFriends(string $username, int $count = 5000, int $cursor = -1, $cacheExpiry = null): stdClass
+	{
+		return $this->cachedRequest('friends/ids', [
+			'screen_name' => $username,
+			'count' => $count,
+			'cursor' => $cursor,
+		], $cacheExpiry);
+	}
+
+	public function loadUserLists(string $username, $reverse = false)
+    {
+	    return $this->cachedRequest('lists/list', [
+	        'screen_name' => $username,
+            'reverse' => $reverse
+        ]);
+    }
+
+	/**
 	 * Returns IDs of followers of a given user.
 	 * https://dev.twitter.com/rest/reference/get/followers/ids
 	 * @throws Exception
@@ -214,6 +282,20 @@ class Twitter
 		], $cacheExpiry);
 	}
 
+
+	/**
+	 * Returns list of friends of a given user.
+	 * https://dev.twitter.com/rest/reference/get/friends/list
+	 * @throws Exception
+	 */
+	public function loadUserFriendsList(string $username, int $count = 200, int $cursor = -1, $cacheExpiry = null): stdClass
+	{
+		return $this->cachedRequest('friends/list', [
+			'screen_name' => $username,
+			'count' => $count,
+			'cursor' => $cursor,
+		], $cacheExpiry);
+	}
 
 	/**
 	 * Returns list of followers of a given user.
@@ -317,8 +399,7 @@ class Twitter
 			$method = 'POST';
 			$data = json_encode($data);
 			$headers[] = 'Content-Type: application/json';
-
-		} elseif (($method === 'GET' || $method === 'DELETE') && $data) {
+		} elseif (($method === 'GET' || $method === 'POST') && $data) {
 			$resource .= '?' . http_build_query($data, '', '&');
 		}
 
