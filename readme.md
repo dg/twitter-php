@@ -116,12 +116,18 @@ if (!$twitter->authenticate()) {
 Other commands
 --------------
 
-You can use all commands defined by [Twitter API 1.1](https://dev.twitter.com/rest/public).
+You can use all commands defined by [Twitter API](https://dev.twitter.com/rest/public).
 For example [GET statuses/retweets_of_me](https://dev.twitter.com/rest/reference/get/statuses/retweets_of_me)
 returns the array of most recent tweets authored by the authenticating user:
 
 ```php
 $statuses = $twitter->request('statuses/retweets_of_me', 'GET', ['count' => 20]);
+```
+
+You can also specify which API version to use with the API_*_SUFFIX constants:
+
+```php
+$statuses = $twitter->request('tweets', 'GET', [], [], Twitter::API_2_SUFFIX);
 ```
 
 Changelog
