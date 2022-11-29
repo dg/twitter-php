@@ -28,7 +28,10 @@ class Twitter
 	public const REPLIES = 3;
 	public const RETWEETS = 128; // include retweets?
 
-	private const API_URL = 'https://api.twitter.com/1.1/';
+	public const API_1_SUFFIX = "1.1";
+	public const API_2_SUFFIX = "2";
+
+	private const API_URL = 'https://api.twitter.com/';
 
 	/** @var int */
 	public static $cacheExpire = '30 minutes';
@@ -284,18 +287,62 @@ class Twitter
 
 
 	/**
-	 * Process HTTP request.
-	 * @param  string  $method  GET|POST|JSONPOST|DELETE
-	 * @return mixed
+	 * Generates an API url, requires at minimum 2 parts (version & path).
+	 *
+	 * @param string ...$parts Collection of URL parts to combine
 	 * @throws Exception
+	 * @return string
 	 */
-	public function request(string $resource, string $method, array $data = [], array $files = [])
+	protected static function makeApiURL(string ...$parts) {
+		$url        = [];
+		$partsCount = count($parts);
+
+		if ($partsCount < 1) {
+			throw new Exception("Invalid API URL components provided. Must have at least 2 parts (version & path)");
+		}
+
+		$url[] = substr(self::API_URL, 0, strlen(self::API_URL) - 1);
+
+		for ($i = 0; $i < $partsCount; $i++) {
+			$part    = $parts[$i];
+			$partLen = strlen($part);
+
+			if ($part[$partLen - 1] == '/') {
+				$part = substr($part, 0, $partLen - 1);
+			}
+
+			if ($part[0] == '/') {
+				$part = substr($part, 1);
+			}
+
+			$url[] = $part;
+		}
+
+		return implode('/', $url);
+	}
+
+
+	/**
+	 * Process HTTP request.  If $resource contains only endpoint path (no http://|https://), API_URL will be prefixed
+	 * onto resource path.  If $apiSuffix is '1.1' (default), resource will have '.json' added as a suffix if '.'
+	 * character not found.
+	 *
+	 * @param string $resource API endpoint
+	 * @param string $method GET|POST|JSONPOST|DELETE
+	 * @param array $data Optional query/body data
+	 * @param array $files Optional file data
+	 * @param string $apiSuffix Optional API version suffix (1.1 by default)
+	 * @throws Exception|\DG\Twitter\OAuth\Exception
+	 * @return mixed
+	 */
+	public function request(string $resource, string $method, array $data = [], array $files = [], string $apiSuffix = self::API_1_SUFFIX)
 	{
 		if (!strpos($resource, '://')) {
-			if (!strpos($resource, '.')) {
+			if ($apiSuffix == self::API_1_SUFFIX && !strpos($resource, '.')) {
 				$resource .= '.json';
 			}
-			$resource = self::API_URL . $resource;
+
+			$resource = static::makeApiURL($apiSuffix, $resource);
 		}
 
 		foreach ($data as $key => $val) {
@@ -308,6 +355,7 @@ class Twitter
 			if (!is_file($file)) {
 				throw new Exception("Cannot read the file $file. Check if file exists on disk and check its permissions.");
 			}
+
 			$data[$key] = new \CURLFile($file);
 		}
 
@@ -317,7 +365,6 @@ class Twitter
 			$method = 'POST';
 			$data = json_encode($data);
 			$headers[] = 'Content-Type: application/json';
-
 		} elseif (($method === 'GET' || $method === 'DELETE') && $data) {
 			$resource .= '?' . http_build_query($data, '', '&');
 		}
@@ -348,12 +395,16 @@ class Twitter
 		$curl = curl_init();
 		curl_setopt_array($curl, $options);
 		$result = curl_exec($curl);
+
 		if (curl_errno($curl)) {
 			throw new Exception('Server error: ' . curl_error($curl));
 		}
 
-		if (strpos(curl_getinfo($curl, CURLINFO_CONTENT_TYPE), 'application/json') !== false) {
+		$contentType = curl_getinfo($curl, CURLINFO_CONTENT_TYPE);
+
+		if ($contentType === false || strpos($contentType, 'application/json') !== false) {
 			$payload = @json_decode($result, false, 128, JSON_BIGINT_AS_STRING); // intentionally @
+
 			if ($payload === false) {
 				throw new Exception('Invalid server response');
 			}
