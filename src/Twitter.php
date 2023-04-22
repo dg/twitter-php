@@ -43,6 +43,12 @@ class Twitter
 		CURLOPT_USERAGENT => 'Twitter for PHP',
 	];
 
+	/** @var array */
+	public $headers;
+
+	/** @var string */
+	public $body;
+
 	/** @var OAuth\Consumer */
 	private $consumer;
 
@@ -326,9 +332,11 @@ class Twitter
 		$request->sign_request(new OAuth\SignatureMethod_HMAC_SHA1, $this->consumer, $this->token);
 		$headers[] = $request->to_header();
 
+		$this->headers = []; // Header array cleanup
+
 		$options = [
 			CURLOPT_URL => $resource,
-			CURLOPT_HEADER => false,
+			CURLOPT_HEADERFUNCTION => [$this, '_setHeader'],
 			CURLOPT_RETURNTRANSFER => true,
 			CURLOPT_HTTPHEADER => $headers,
 		] + $this->httpOptions;
@@ -352,6 +360,8 @@ class Twitter
 			throw new Exception('Server error: ' . curl_error($curl));
 		}
 
+		$this->body = $result; // RAW body
+		
 		if (strpos(curl_getinfo($curl, CURLINFO_CONTENT_TYPE), 'application/json') !== false) {
 			$payload = @json_decode($result, false, 128, JSON_BIGINT_AS_STRING); // intentionally @
 			if ($payload === false) {
@@ -446,6 +456,30 @@ class Twitter
 				. iconv_substr($s, $item[2], iconv_strlen($s, 'UTF-8'), 'UTF-8');
 		}
 		return $s;
+	}
+
+
+	/**
+	 * Saves headers to the instance
+	 */
+	private function _setHeader($ch, $header)
+	{
+		$this->headers[] = trim($header);
+		return strlen($header);
+	}
+
+	/**
+	 * Get headers in an indexed array
+	 */
+	public function getHeaderArray()
+	{
+		$headers_array = [];
+		foreach ($this->headers as $h) {
+			if(preg_match_all('/^([A-Za-z-]+)\: ([ -~]+)/', $h, $matches, PREG_SET_ORDER, 0)){
+				$headers_array[$matches[0][1]] = $matches[0][2];
+			}
+		}
+		return $headers_array;
 	}
 }
 
