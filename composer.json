@@ -1,7 +1,7 @@
 {
 	"name": "dg/twitter-php",
-	"description": "Small and easy Twitter library for PHP",
-	"keywords": ["twitter", "oauth"],
+	"description": "Small and easy library for X (formerly Twitter) API v2",
+	"keywords": ["x", "twitter", "oauth", "api"],
 	"homepage": "https://github.com/dg/twitter-php",
 	"license": ["BSD-3-Clause"],
 	"authors": [
@@ -12,15 +12,32 @@
 	],
 	"require": {
 		"php": ">=8.2",
-		"ext-curl": "*",
-		"ext-json": "*"
+		"ext-json": "*",
+		"guzzlehttp/guzzle": "^7.0"
+	},
+	"require-dev": {
+		"nette/tester": "^2.6",
+		"phpstan/phpstan": "^2.1@stable",
+		"phpstan/extension-installer": "^1.4@stable",
+		"nette/phpstan-rules": "^1.0"
 	},
 	"autoload": {
 		"classmap": ["src/"]
 	},
 	"extra": {
 		"branch-alias": {
-			"dev-master": "4.0-dev"
+			"dev-master": "5.0-dev"
+		}
+	},
+	"minimum-stability": "dev",
+	"prefer-stable": true,
+	"scripts": {
+		"phpstan": "phpstan analyse",
+		"tester": "tester tests -s"
+	},
+	"config": {
+		"allow-plugins": {
+			"phpstan/extension-installer": true
 		}
 	}
 }
