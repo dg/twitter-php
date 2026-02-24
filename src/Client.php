@@ -25,7 +25,7 @@ class Client
 	private const ApiUrl = 'https://api.twitter.com/2/';
 	private const UploadUrl = 'https://upload.twitter.com/1.1/media/upload.json';
 
-	/** Guzzle client options */
+	/** @var array<string, mixed> Guzzle client options */
 	public array $httpOptions = [
 		'timeout' => 20,
 	];
@@ -78,6 +78,7 @@ class Client
 	/**
 	 * Sends a tweet.
 	 * @param  string|string[]|null  $media  path(s) to local media file(s) to be uploaded
+	 * @param  array<string, mixed>  $options
 	 * @throws Exception
 	 */
 	public function sendTweet(string $text, string|array|null $media = null, array $options = []): stdClass
@@ -118,12 +119,14 @@ class Client
 		if ($fields) {
 			$data['tweet.fields'] = implode(',', $fields);
 		}
+
 		return $this->request("tweets/$id", 'GET', $data);
 	}
 
 
 	/**
 	 * Returns the authenticated user's tweets.
+	 * @param  array<string, mixed>  $options
 	 * @return stdClass[]
 	 * @throws Exception
 	 */
@@ -139,6 +142,7 @@ class Client
 
 	/**
 	 * Returns the authenticated user's home timeline (reverse chronological).
+	 * @param  array<string, mixed>  $options
 	 * @return stdClass[]
 	 * @throws Exception
 	 */
@@ -154,6 +158,7 @@ class Client
 
 	/**
 	 * Returns the most recent mentions for the authenticated user.
+	 * @param  array<string, mixed>  $options
 	 * @return stdClass[]
 	 * @throws Exception
 	 */
@@ -169,6 +174,7 @@ class Client
 
 	/**
 	 * Searches for recent tweets matching the query.
+	 * @param  array<string, mixed>  $options
 	 * @return stdClass[]
 	 * @throws Exception
 	 */
@@ -211,6 +217,7 @@ class Client
 
 	/**
 	 * Returns followers of a user.
+	 * @param  array<string, mixed>  $options
 	 * @throws Exception
 	 */
 	public function getFollowers(string $userId, array $options = []): stdClass
@@ -249,6 +256,8 @@ class Client
 	/**
 	 * Processes an HTTP request to the X API.
 	 * @param  string  $method  GET|POST|DELETE
+	 * @param  array<string, mixed>  $data
+	 * @param  array<string, string>  $files
 	 * @throws Exception
 	 */
 	public function request(string $resource, string $method = 'GET', array $data = [], array $files = []): mixed
@@ -259,11 +268,11 @@ class Client
 
 		$data = array_filter($data, fn($val) => $val !== null);
 
-		$options = [
-			'headers' => [
-				'Authorization' => $this->buildOAuthHeader($method, $resource, $method === 'GET' ? $data : []),
-			],
+		$headers = [
+			'Authorization' => $this->buildOAuthHeader($method, $resource, $method === 'GET' ? $data : []),
 		];
+
+		$options = ['headers' => $headers];
 
 		if ($method === 'GET' || $method === 'DELETE') {
 			if ($data) {
@@ -282,7 +291,6 @@ class Client
 				$multipart[] = ['name' => $key, 'contents' => fopen($file, 'r'), 'filename' => basename($file)];
 			}
 			$options['multipart'] = $multipart;
-			unset($options['headers']['Content-Type']); // let Guzzle set multipart boundary
 
 		} else {
 			$options['json'] = $data;
@@ -353,9 +361,10 @@ class Client
 
 		krsort($all);
 		foreach ($all as $pos => $item) {
+			$len = (int) iconv_strlen($text, 'UTF-8');
 			$text = iconv_substr($text, 0, $pos, 'UTF-8')
 				. '<a href="' . htmlspecialchars($item[0]) . '">' . htmlspecialchars($item[1]) . '</a>'
-				. iconv_substr($text, $item[2], iconv_strlen($text, 'UTF-8'), 'UTF-8');
+				. iconv_substr($text, $item[2], $len - $item[2], 'UTF-8');
 		}
 
 		return $text;
@@ -371,14 +380,21 @@ class Client
 			throw new Exception("Cannot read the file $path. Check if file exists on disk and check its permissions.");
 		}
 
+		$contents = file_get_contents($path);
+		if ($contents === false) {
+			throw new Exception("Cannot read the file $path.");
+		}
+
+		$base64 = base64_encode($contents);
+
 		$response = $this->http->post(self::UploadUrl, [
 			'headers' => [
 				'Authorization' => $this->buildOAuthHeader('POST', self::UploadUrl, [
-					'media_data' => base64_encode(file_get_contents($path)),
+					'media_data' => $base64,
 				]),
 			],
 			'form_params' => [
-				'media_data' => base64_encode(file_get_contents($path)),
+				'media_data' => $base64,
 			],
 		]);
 
@@ -403,6 +419,7 @@ class Client
 
 	/**
 	 * Builds OAuth 1.0a Authorization header for the request.
+	 * @param  array<string, string>  $bodyParams
 	 */
 	private function buildOAuthHeader(string $method, string $url, array $bodyParams = []): string
 	{
