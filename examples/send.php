@@ -1,15 +1,15 @@
-<?php
+<?php declare(strict_types=1);
 
-use DG\Twitter\Twitter;
+use DG\X\Client;
 
-require_once '../src/twitter.class.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
-// ENTER HERE YOUR CREDENTIALS (see readme.txt)
-$twitter = new Twitter($consumerKey, $consumerSecret, $accessToken, $accessTokenSecret);
+// ENTER HERE YOUR CREDENTIALS (see readme.md)
+$x = new Client($consumerKey, $consumerSecret, $accessToken, $accessTokenSecret);
 
 try {
-	$tweet = $twitter->send('I am fine'); // you can add $imagePath or array of image paths as second argument
+	$tweet = $x->sendTweet('I am fine'); // you can add $imagePath or array of image paths as second argument
 
-} catch (DG\Twitter\TwitterException $e) {
+} catch (DG\X\Exception $e) {
 	echo 'Error: ' . $e->getMessage();
 }

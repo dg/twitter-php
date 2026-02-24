@@ -1,29 +1,22 @@
-<?php
+<?php declare(strict_types=1);
 
-use DG\Twitter\Twitter;
+use DG\X\Client;
 
-require_once '../src/twitter.class.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
-// enables caching (path must exists and must be writable!)
-// Twitter::$cacheDir = __DIR__ . '/temp';
+// ENTER HERE YOUR CREDENTIALS (see readme.md)
+$x = new Client($consumerKey, $consumerSecret, $accessToken, $accessTokenSecret);
 
-
-// ENTER HERE YOUR CREDENTIALS (see readme.txt)
-$twitter = new Twitter($consumerKey, $consumerSecret, $accessToken, $accessTokenSecret);
-
-$statuses = $twitter->load(Twitter::ME_AND_FRIENDS);
+$tweets = $x->getMyTweets();
 
 ?>
 <!doctype html>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title>Twitter timeline demo</title>
+<meta charset="utf-8">
+<title>X timeline demo</title>
 
 <ul>
-<?php foreach ($statuses as $status) { ?>
-	<li><a href="https://twitter.com/<?php echo $status->user->screen_name ?>"><img src="<?php echo htmlspecialchars($status->user->profile_image_url_https) ?>">
-		<?php echo htmlspecialchars($status->user->name) ?></a>:
-		<?php echo Twitter::clickable($status) ?>
-		<small>at <?php echo date('j.n.Y H:i', strtotime($status->created_at)) ?></small>
-	</li>
+<?php foreach ($tweets as $tweet) { ?>
+	<li><?php echo Client::clickable($tweet) ?>
+</li>
 <?php } ?>
 </ul>
