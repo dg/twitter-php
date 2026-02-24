@@ -15,7 +15,6 @@ namespace DG\X;
 
 use GuzzleHttp;
 use stdClass;
-use function is_string;
 
 
 /**
@@ -25,9 +24,6 @@ class Client
 {
 	private const ApiUrl = 'https://api.twitter.com/2/';
 	private const UploadUrl = 'https://upload.twitter.com/1.1/media/upload.json';
-
-	public static string $cacheExpire = '30 minutes';
-	public static ?string $cacheDir = null;
 
 	/** Guzzle client options */
 	public array $httpOptions = [
@@ -134,9 +130,10 @@ class Client
 	public function getMyTweets(int $count = 20, array $options = []): array
 	{
 		$userId = $this->getAuthenticatedUserId();
-		return $this->cachedRequest("users/$userId/tweets", $options + [
+		$res = $this->request("users/$userId/tweets", 'GET', $options + [
 			'max_results' => min($count, 100),
 		]);
+		return $res->data ?? [];
 	}
 
 
@@ -148,9 +145,10 @@ class Client
 	public function getTimeline(int $count = 20, array $options = []): array
 	{
 		$userId = $this->getAuthenticatedUserId();
-		return $this->cachedRequest("users/$userId/reverse_chronological", $options + [
+		$res = $this->request("users/$userId/reverse_chronological", 'GET', $options + [
 			'max_results' => min($count, 100),
 		]);
+		return $res->data ?? [];
 	}
 
 
@@ -162,9 +160,10 @@ class Client
 	public function getMentions(int $count = 20, array $options = []): array
 	{
 		$userId = $this->getAuthenticatedUserId();
-		return $this->cachedRequest("users/$userId/mentions", $options + [
+		$res = $this->request("users/$userId/mentions", 'GET', $options + [
 			'max_results' => min($count, 100),
 		]);
+		return $res->data ?? [];
 	}
 
 
@@ -175,7 +174,8 @@ class Client
 	 */
 	public function search(string $query, array $options = []): array
 	{
-		return $this->cachedRequest('tweets/search/recent', $options + ['query' => $query]);
+		$res = $this->request('tweets/search/recent', 'GET', $options + ['query' => $query]);
+		return $res->data ?? [];
 	}
 
 
@@ -190,7 +190,7 @@ class Client
 		if ($fields) {
 			$data['user.fields'] = implode(',', $fields);
 		}
-		return $this->cachedRequest("users/by/username/$username", $data);
+		return $this->request("users/by/username/$username", 'GET', $data);
 	}
 
 
@@ -205,7 +205,7 @@ class Client
 		if ($fields) {
 			$data['user.fields'] = implode(',', $fields);
 		}
-		return $this->cachedRequest("users/$id", $data);
+		return $this->request("users/$id", 'GET', $data);
 	}
 
 
@@ -215,7 +215,7 @@ class Client
 	 */
 	public function getFollowers(string $userId, array $options = []): stdClass
 	{
-		return $this->cachedRequest("users/$userId/followers", $options);
+		return $this->request("users/$userId/followers", 'GET', $options);
 	}
 
 
@@ -306,43 +306,6 @@ class Client
 		}
 
 		return $payload;
-	}
-
-
-	/**
-	 * Cached HTTP GET request.
-	 */
-	public function cachedRequest(string $resource, array $data = [], string|int|null $cacheExpire = null): mixed
-	{
-		if (!self::$cacheDir) {
-			return $this->request($resource, 'GET', $data);
-		}
-
-		$cacheExpire ??= self::$cacheExpire;
-
-		$cacheFile = self::$cacheDir
-			. '/twitter.'
-			. md5($resource . json_encode($data) . $this->consumerKey . $this->accessToken)
-			. '.json';
-
-		$cache = @json_decode((string) @file_get_contents($cacheFile)); // @ - file may not exist
-		$expiration = is_string($cacheExpire)
-			? strtotime($cacheExpire) - time()
-			: $cacheExpire;
-		if ($cache && @filemtime($cacheFile) + $expiration > time()) { // @ - file may not exist
-			return $cache;
-		}
-
-		try {
-			$payload = $this->request($resource, 'GET', $data);
-			file_put_contents($cacheFile, json_encode($payload));
-			return $payload;
-		} catch (Exception $e) {
-			if ($cache) {
-				return $cache;
-			}
-			throw $e;
-		}
 	}
 
 
