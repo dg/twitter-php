@@ -119,7 +119,7 @@ $tweets = $x->getMentions();
 The static method `Client::clickable()` makes links, mentions and hashtags in tweets clickable:
 
 ```php
-foreach ($tweets->data as $tweet) {
+foreach ($tweets as $tweet) {
 	echo Client::clickable($tweet);
 }
 ```
