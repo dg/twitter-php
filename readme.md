@@ -22,7 +22,7 @@ composer require dg/twitter-php
 
 Requirements: PHP 8.2 or higher.
 
- <!---->
+ <!---->
 
 
 Getting API Keys
@@ -55,7 +55,7 @@ Getting API Keys
    streamline my social media posting workflow.
    ```
 
- <!---->
+ <!---->
 
 
 Usage
@@ -182,7 +182,7 @@ try {
 }
 ```
 
- <!---->
+ <!---->
 
 
 Backward Compatibility
@@ -191,7 +191,7 @@ Backward Compatibility
 The old class names `DG\Twitter\Twitter`, `DG\Twitter\Exception`, `Twitter` and `TwitterException`
 are available as aliases for `DG\X\Client` and `DG\X\Exception`.
 
- <!---->
+ <!---->
 
 
 [Support Me](https://github.com/sponsors/dg)
@@ -201,7 +201,7 @@ are available as aliases for `DG\X\Client` and `DG\X\Exception`.
 
 Thank you!
 
- <!---->
+ <!---->
 
 
 Changelog
