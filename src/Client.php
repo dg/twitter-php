@@ -31,10 +31,6 @@ class Client
 	];
 
 	private GuzzleHttp\Client $http;
-	private string $consumerKey;
-	private string $consumerSecret;
-	private ?string $accessToken;
-	private ?string $accessTokenSecret;
 
 	/** Cached authenticated user ID */
 	private ?string $userId = null;
@@ -44,15 +40,11 @@ class Client
 	 * Creates client using consumer and access keys.
 	 */
 	public function __construct(
-		string $consumerKey,
-		string $consumerSecret,
-		?string $accessToken = null,
-		?string $accessTokenSecret = null,
+		private string $consumerKey,
+		private string $consumerSecret,
+		private ?string $accessToken = null,
+		private ?string $accessTokenSecret = null,
 	) {
-		$this->consumerKey = $consumerKey;
-		$this->consumerSecret = $consumerSecret;
-		$this->accessToken = $accessToken;
-		$this->accessTokenSecret = $accessTokenSecret;
 		$this->http = new GuzzleHttp\Client($this->httpOptions);
 	}
 
@@ -64,7 +56,7 @@ class Client
 	public function authenticate(): bool
 	{
 		try {
-			$res = $this->request('users/me', 'GET');
+			$res = $this->request('users/me');
 			return !empty($res->data->id);
 		} catch (Exception $e) {
 			if ($e->getCode() === 401) {
@@ -409,7 +401,7 @@ class Client
 	private function getAuthenticatedUserId(): string
 	{
 		if ($this->userId === null) {
-			$res = $this->request('users/me', 'GET');
+			$res = $this->request('users/me');
 			$this->userId = $res->data->id ?? throw new Exception('Cannot determine authenticated user ID');
 		}
 
@@ -432,7 +424,7 @@ class Client
 			'oauth_version' => '1.0',
 		];
 
-		$params = array_merge($oauth, $bodyParams);
+		$params = [...$oauth, ...$bodyParams];
 		ksort($params);
 
 		$paramString = http_build_query($params, '', '&', PHP_QUERY_RFC3986);
